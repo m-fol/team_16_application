@@ -1,6 +1,7 @@
 // App state, persisted to localStorage. This is a prototype: everything lives in the browser
 // and the community members below are fictional seed data.
 import { ENERGY, uid, todayISO, addDaysISO, softDeadline } from './util.js';
+import { BADGES, badgesFor } from './badges.js';
 
 const KEY = 'thrivetogether.v1';
 
@@ -45,6 +46,7 @@ function seed() {
     energy: null,
     skip: null,
     hours: 3,
+    badges: ['seed'],
     tasks: [
       {
         id: uid(), title: 'Send invoice to Harbour Café', energy: 'low', created: 1,
@@ -151,6 +153,7 @@ function load() {
       if (s && s.version === 1) {
         // Older saves called the points "credits".
         if (s.hours === undefined) { s.hours = s.credits ?? 0; delete s.credits; }
+        if (!s.badges) s.badges = badgesFor(s.hours);
         return s;
       }
     }
@@ -209,13 +212,15 @@ export function overlap(a, b) {
 // ---- Hours: gentle points. They only go up for doing things (no streaks, no penalties). ----
 export const EARN = { step: 1, task: 2, cowork: 1 };
 
-export const LEVELS = [
-  { min: 0, name: 'Seed' },
-  { min: 10, name: 'Sprout' },
-  { min: 25, name: 'Growing' },
-  { min: 50, name: 'Blooming' },
-  { min: 100, name: 'Thriving' },
-];
+// Levels and badges are the same thing: reaching a level earns its badge.
+export const LEVELS = BADGES.map(({ min, name }) => ({ min, name }));
+
+// Add any badges the current hours have reached. Returns the new badge ids (usually none).
+export function collectBadges(s) {
+  const fresh = badgesFor(s.hours).filter((id) => !s.badges.includes(id));
+  s.badges.push(...fresh);
+  return fresh;
+}
 
 export function levelFor(hours) {
   let i = 0;

@@ -1,5 +1,6 @@
-import { store } from './store.js';
-import { announce, toast, applySettings, watchSystemTheme } from './ui.js';
+import { store, collectBadges } from './store.js';
+import { badgesFor } from './badges.js';
+import { announce, toast, celebrate, applySettings, watchSystemTheme } from './ui.js';
 import { icon } from './icons.js';
 import today from './views/today.js';
 import plan from './views/plan.js';
@@ -23,6 +24,13 @@ function parse() {
 }
 
 function draw() {
+  // Award any newly reached badges before drawing, so the page already shows them.
+  let fresh = [];
+  if (store.state.badges) {
+    const s = store.state;
+    if (badgesFor(s.hours).some((id) => !s.badges.includes(id))) store.update((st) => { fresh = collectBadges(st); });
+  }
+  if (fresh.length) setTimeout(() => celebrate(fresh), 0);
   const { name, params } = parse();
   const view = routes[name];
   const container = document.createElement('div');

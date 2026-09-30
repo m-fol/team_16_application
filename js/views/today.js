@@ -1,4 +1,5 @@
-import { store, nextStep, currentEnergy, setStepDone, levelFor, hoursText, EARN } from '../store.js';
+import { store, nextStep, currentEnergy, setStepDone, levelFor, hoursText, EARN, LEVELS } from '../store.js';
+import { BADGES, badgeSvg, badgeList } from '../badges.js';
 import { esc, ENERGY, todayISO, fmtDateTime, relDays, softDeadline } from '../util.js';
 import { icon, pageHead, heading, ENERGY_ICON } from '../icons.js';
 
@@ -56,7 +57,7 @@ export default {
         ${renderNext(next)}
       </section>
 
-      ${hoursCard(s.hours)}
+      ${hoursCard(s.hours, s.badges)}
 
       <section class="card" aria-labelledby="up-h">
         ${heading('up-h', 'calendar', 'Coming up')}
@@ -141,7 +142,7 @@ function renderNext(next) {
 }
 
 // Hours: points you earn by doing things. A level name and one progress bar, nothing to lose.
-function hoursCard(hours) {
+function hoursCard(hours, badges) {
   const level = levelFor(hours);
   const toNext = level.next ? level.next.min - hours : 0;
   const pct = level.next ? Math.round(((hours - level.min) / (level.next.min - level.min)) * 100) : 100;
@@ -150,13 +151,15 @@ function hoursCard(hours) {
       ${heading('hours-h', 'clock', 'Your hours')}
       <div class="hours-row">
         <p class="hours-total"><strong>${hours}</strong> <span>${hours === 1 ? 'hour' : 'hours'}</span></p>
-        <p class="hours-level">${icon('sparkle', 22)} ${level.name}</p>
+        <p class="hours-level">${badgeSvg(BADGES[LEVELS.findIndex((l) => l.name === level.name)].id, 34)} ${level.name}</p>
       </div>
       ${level.next ? `
         <div class="progress-row">
           <progress max="100" value="${pct}" aria-labelledby="hours-next"></progress>
           <span id="hours-next">${hoursText(toNext)} to ${level.next.name}</span>
         </div>` : '<p>Top level reached.</p>'}
+      <h3 class="badges-title">Badges</h3>
+      ${badgeList(badges, hours)}
       <p class="muted">Step +${EARN.step} · Task +${EARN.task} · Co-work +${EARN.cowork} · Helping someone: +1 per hour</p>
     </section>`;
 }

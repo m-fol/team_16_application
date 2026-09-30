@@ -2,6 +2,7 @@
 import { store } from '../store.js';
 import { esc, COMMS, splitList } from '../util.js';
 import { icon, pageHead, heading, COMMS_ICON } from '../icons.js';
+import { badgeList } from '../badges.js';
 
 export default {
   title: 'My profile',
@@ -53,6 +54,11 @@ export default {
 
         <button type="submit" class="btn btn-primary" id="save-profile">${icon('save')}Save</button>
       </form>
+
+      <section class="card" aria-labelledby="badges-h">
+        ${heading('badges-h', 'sparkle', 'My badges')}
+        ${badgeList(store.state.badges, store.state.hours)}
+      </section>
 
     `;
   },

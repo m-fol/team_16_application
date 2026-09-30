@@ -77,7 +77,7 @@ You earn **hours** for doing things. They show in the header and on the Today pa
 | Help someone in a skill swap | +1 per hour of help |
 | Pay for help with hours | − the hours you pay |
 
-Levels: Seed (0), Sprout (10), Growing (25), Blooming (50), Thriving (100).
+Levels: Seed (0), Sprout (10), Growing (25), Blooming (50), Thriving (100). Reaching a level earns its **badge**: a wavy badge with a plant that grows from a seed to a tree (`js/badges.js`). Badges show on the Today page and your profile, a "New badge!" message appears when you earn one, and earned badges are never taken away.
 
 Designed to motivate without pressure: no streaks, no leaderboards, and nothing is lost for missing a day. Undoing or unticking a step takes its hours back, so points always match real progress.
 
@@ -118,6 +118,7 @@ js/ui.js            Announcements, undo toasts, applying comfort settings
 js/util.js          Escaping, dates, shared vocabularies
 js/icons.js         Icons and page headings
 js/art.js           Line-art illustrations in the style of the slide deck
+js/badges.js        Level badges (drawings and the badge list)
 demo.html           Presentation page: the app inside a phone frame
 manifest.webmanifest, icons/   Home-screen install (app name, colours, icons)
 js/views/*.js       One file per screen: render() returns HTML, mount() wires events

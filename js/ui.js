@@ -1,4 +1,5 @@
 import { icon } from './icons.js';
+import { BADGES, badgeSvg } from './badges.js';
 
 // Accessibility plumbing: screen reader announcements, undo toasts, and applying comfort settings.
 
@@ -36,6 +37,24 @@ export function toast(message, { undo } = {}) {
   close.addEventListener('click', () => { region.innerHTML = ''; });
   box.append(close);
   region.append(box);
+}
+
+// A second, separate message for a new badge, so it never replaces an Undo message.
+export function celebrate(badgeIds) {
+  const region = document.getElementById('toast-region');
+  badgeIds.forEach((id) => {
+    const b = BADGES.find((x) => x.id === id);
+    const box = document.createElement('div');
+    box.className = 'toast toast-badge';
+    box.setAttribute('role', 'status');
+    box.innerHTML = `${badgeSvg(id, 56)}<p>New badge: ${b.name}!</p>`;
+    const close = button('', 'toast-close');
+    close.setAttribute('aria-label', 'Close message');
+    close.innerHTML = icon('close', 22);
+    close.addEventListener('click', () => box.remove());
+    box.append(close);
+    region.append(box);
+  });
 }
 
 function button(label, className) {
