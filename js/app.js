@@ -30,7 +30,14 @@ function draw() {
   container.innerHTML = view.render(params);
   main.replaceChildren(container);
   view.mount?.(container, params, ctx);
+  paintHours();
   return { name, params, view };
+}
+
+// Header counter for hours (the app's points). Redrawn with every view.
+function paintHours() {
+  const h = store.state.hours;
+  document.getElementById('hours-pill').innerHTML = `${icon('clock', 22)}<strong>${h}</strong>&nbsp;${h === 1 ? 'hour' : 'hours'}`;
 }
 
 const ctx = {

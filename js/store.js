@@ -44,7 +44,7 @@ function seed() {
     },
     energy: null,
     skip: null,
-    credits: 1,
+    hours: 3,
     tasks: [
       {
         id: uid(), title: 'Send invoice to Harbour Café', energy: 'low', created: 1,
@@ -110,7 +110,7 @@ function seed() {
       {
         id: uid(), memberId: 'm2', direction: 'out', status: 'accepted', hours: 1, created: Date.now() - 864e5,
         theyGive: 'Bookkeeping', iGive: 'credit',
-        message: 'Hi Priya, could you show me how to categorise my expenses? I can pay with a time credit.',
+        message: 'Hi Priya, could you show me how to categorise my expenses? I can pay with hours.',
       },
     ],
     sessions: [
@@ -148,7 +148,11 @@ function load() {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const s = JSON.parse(raw);
-      if (s && s.version === 1) return s;
+      if (s && s.version === 1) {
+        // Older saves called the points "credits".
+        if (s.hours === undefined) { s.hours = s.credits ?? 0; delete s.credits; }
+        return s;
+      }
     }
   } catch { /* storage blocked or corrupt: start fresh */ }
   return seed();
@@ -201,3 +205,37 @@ export function overlap(a, b) {
   const norm = (x) => x.toLowerCase();
   return a.filter((x) => b.some((y) => norm(y).includes(norm(x)) || norm(x).includes(norm(y))));
 }
+
+// ---- Hours: gentle points. They only go up for doing things (no streaks, no penalties). ----
+export const EARN = { step: 1, task: 2, cowork: 1 };
+
+export const LEVELS = [
+  { min: 0, name: 'Seed' },
+  { min: 10, name: 'Sprout' },
+  { min: 25, name: 'Growing' },
+  { min: 50, name: 'Blooming' },
+  { min: 100, name: 'Thriving' },
+];
+
+export function levelFor(hours) {
+  let i = 0;
+  while (i + 1 < LEVELS.length && hours >= LEVELS[i + 1].min) i += 1;
+  return { ...LEVELS[i], next: LEVELS[i + 1] || null };
+}
+
+// Mark a step done or not done, adjusting hours. Returns the hours earned (negative when undone).
+export function setStepDone(s, taskId, stepId, done) {
+  const task = s.tasks.find((t) => t.id === taskId);
+  const step = task.steps.find((st) => st.id === stepId);
+  if (step.done === done) return 0;
+  const wasComplete = task.steps.every((st) => st.done);
+  step.done = done;
+  const isComplete = task.steps.every((st) => st.done);
+  let delta = done ? EARN.step : -EARN.step;
+  if (isComplete && !wasComplete) delta += EARN.task;
+  if (wasComplete && !isComplete) delta -= EARN.task;
+  s.hours = Math.max(0, s.hours + delta);
+  return delta;
+}
+
+export const hoursText = (n) => `${n} ${n === 1 ? 'hour' : 'hours'}`;

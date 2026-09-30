@@ -1,4 +1,4 @@
-import { store, byUrgency } from '../store.js';
+import { store, byUrgency, setStepDone, hoursText } from '../store.js';
 import { esc, uid, ENERGY, relDays, softDeadline, splitLines } from '../util.js';
 import { icon, pageHead, heading, ENERGY_ICON } from '../icons.js';
 
@@ -128,11 +128,13 @@ export default {
     root.addEventListener('change', (e) => {
       const { taskId, stepId } = e.target.dataset;
       if (!stepId) return;
-      store.update((s) => { findStep(s, taskId, stepId).done = e.target.checked; });
+      let delta = 0;
+      store.update((s) => { delta = setStepDone(s, taskId, stepId, e.target.checked); });
       const task = store.state.tasks.find((t) => t.id === taskId);
       const left = task.steps.filter((st) => !st.done).length;
       ctx.rerender(left ? null : '#list-h');
-      ctx.announce(left ? `${left} ${left === 1 ? 'step' : 'steps'} left in ${task.title}.` : `${task.title} is done.`);
+      const earned = delta > 0 ? ` +${hoursText(delta)}.` : '';
+      ctx.announce(left ? `${left} ${left === 1 ? 'step' : 'steps'} left.${earned}` : `${task.title} is done.${earned}`);
     });
 
     root.addEventListener('submit', (e) => {
@@ -168,10 +170,6 @@ export default {
     });
   },
 };
-
-function findStep(s, taskId, stepId) {
-  return s.tasks.find((t) => t.id === taskId).steps.find((st) => st.id === stepId);
-}
 
 function taskCard(t, buffer) {
   const done = t.steps.filter((st) => st.done).length;

@@ -498,6 +498,23 @@ input[type="checkbox"], input[type="radio"] {
 [data-theme="contrast"] :is(.tag, .chip, .status) { border-color: var(--text); color: var(--text); }
 [data-lowstim] :is(.tag, .chip, .status, .tags .tag) { border-color: var(--border-strong); }
 
+/* ---------- Hours (points) ---------- */
+.header-links a.hours-pill { background: var(--orange); color: var(--ink); border-color: var(--border-strong); padding-left: 0.6rem; }
+.header-links a.hours-pill .icon { background: var(--chip); }
+.header-links a.hours-pill strong { font-family: var(--font-head); font-size: 1.1em; }
+.hours-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; margin-bottom: 0.5rem; }
+.hours-total { margin: 0; display: flex; align-items: baseline; gap: 0.4rem; }
+.hours-total strong { font-family: var(--font-head); font-size: 3.2rem; line-height: 1; letter-spacing: -0.02em; color: var(--title); }
+.hours-total span { font-weight: 700; font-size: 1.2rem; }
+.hours-level {
+  margin: 0; display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.3rem 0.9rem; border-radius: 999px;
+  background: var(--aqua); color: var(--ink); font-family: var(--font-head); font-weight: 700;
+}
+[data-theme="contrast"] :is(.hours-level, .header-links a.hours-pill) { border: 2px solid var(--text); }
+.hours-card progress::-webkit-progress-value { background: var(--orange); }
+.hours-card progress::-moz-progress-bar { background: var(--orange); }
+
 /* ---------- Today ---------- */
 .step-text { font-size: 1.9rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; margin-bottom: 0.35rem; }
 .plain-list { list-style: none; padding: 0; margin: 0 0 var(--gap); }
@@ -621,9 +638,36 @@ dialog .card-note { background: var(--aqua); }
   :root:not([data-motion="reduce"]) .timer-bar div { transition: width 0.5s linear; }
 }
 
-/* ---------- Small screens ---------- */
+/* ---------- Small screens: app-style bottom tab bar ---------- */
 @media (max-width: 48rem) {
-  .nav-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  :root { --tabbar: calc(76px + env(safe-area-inset-bottom)); }
+  /* Keep focused elements from hiding behind the bar. */
+  html { scroll-padding-bottom: calc(var(--tabbar) + 1rem); }
+  nav[aria-label="Main"] {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 15;
+    background: var(--surface);
+    border-top: 2px solid var(--border-strong);
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  }
+  .nav-list { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  .nav-list a {
+    min-height: 62px; padding: 4px 2px; gap: 2px;
+    border: 2px solid transparent; border-radius: 16px;
+    font-size: 0.8rem;
+  }
+  .nav-list a .icon { width: 24px; height: 24px; padding: 5px; border-radius: 10px; }
+  .nav-list a[aria-current="page"] { border-color: var(--border-strong); }
+  main { padding-bottom: calc(var(--tabbar) + 3rem); }
+  .toast-region { bottom: calc(var(--tabbar) + 0.75rem); }
+  .header-top { margin-bottom: 0; }
+  .brand-tagline { display: none; }
+  .brand-mark { width: 48px; height: 48px; }
+  .brand-name { font-size: 1.45rem; }
+  /* Profile and Settings become round icon buttons; their names stay for screen readers. */
+  .header-links a:not(.hours-pill) { padding: 0.35rem; width: 48px; justify-content: center; }
+  .header-links a:not(.hours-pill) span {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
   .page-head, .page-head:has(.page-art) { padding-right: 0; min-height: 0; flex-wrap: wrap; }
   .page-visual { display: none; }
   /* On narrow screens the illustration sits under the title instead of beside it. */

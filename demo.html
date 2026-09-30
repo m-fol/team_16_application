@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ThriveTogether · Demo</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Poppins:wght@600;700&display=swap">
+  <style>
+    /* Presentation page: the real app running inside a phone frame, styled like the slide deck. */
+    :root {
+      color-scheme: light;
+      --ink: #121417; --blue: #38b6ff; --title: #0b75c4; --orange: #ffbd59; --aqua: #5ce1e6; --lilac: #c7b5ff;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; overflow: hidden;
+      background: #fff; color: var(--ink);
+      font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 1.1rem; line-height: 1.5;
+    }
+    .stage {
+      position: relative; height: 100%;
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4vw;
+      padding: 3vh 6vw;
+    }
+    /* Decorative shapes from the slides */
+    .blob { position: absolute; z-index: 0; }
+    .blob-a { right: -70px; bottom: -80px; width: 300px; color: var(--orange); }
+    .blob-b { left: -40px; bottom: -60px; width: 160px; color: var(--blue); }
+    .tab { position: absolute; left: 0; top: 16%; width: 44px; height: 30%; background: var(--orange); border-radius: 0 28px 28px 0; }
+    .copy, .phone-wrap { position: relative; z-index: 1; }
+
+    .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 4vh; }
+    .brand img { width: 72px; height: 72px; }
+    .brand-name { font-family: Poppins, sans-serif; font-weight: 700; font-size: 2rem; letter-spacing: -0.02em; }
+    .brand-name span { color: var(--title); }
+    .kicker { font-family: Poppins, sans-serif; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 0.5rem; }
+    h1 {
+      font-family: Poppins, sans-serif; font-weight: 700; color: var(--title);
+      font-size: clamp(2.6rem, 6.2vw, 5.5rem); line-height: 1; letter-spacing: -0.03em; margin: 0 0 3vh;
+    }
+    .lede { max-width: 30rem; margin: 0 0 4vh; }
+
+    .screens { display: flex; flex-wrap: wrap; gap: 10px; }
+    .screens button {
+      display: inline-flex; align-items: center; gap: 10px;
+      min-height: 52px; padding: 6px 18px 6px 6px;
+      font: inherit; font-weight: 700; color: var(--ink);
+      background: #fff; border: 2px solid var(--ink); border-radius: 999px; cursor: pointer;
+    }
+    .screens button .chip { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--c); }
+    .screens button[aria-pressed="true"] { background: var(--c); }
+    .screens button[aria-pressed="true"] .chip { background: #fff; }
+    .screens button:focus-visible, .open:focus-visible { outline: 4px solid #6b21e8; outline-offset: 3px; }
+    .open { display: inline-block; margin-top: 3vh; color: var(--ink); font-weight: 700; text-underline-offset: 0.2em; }
+
+    /* Phone frame */
+    .phone-wrap { width: calc(418px * var(--s, 1)); height: calc(906px * var(--s, 1)); }
+    .phone {
+      width: 418px; height: 906px; transform: scale(var(--s, 1)); transform-origin: top left;
+      background: var(--ink); border-radius: 60px; padding: 48px 14px 14px; /* top strip = status bar */
+      box-shadow: 0 0 0 3px #3a3f47, 18px 24px 0 var(--blue);
+      position: relative;
+    }
+    .phone::before { /* speaker notch */
+      content: ""; position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      width: 110px; height: 26px; background: #2a2e34; background: var(--ink); border-radius: 20px; z-index: 2;
+    }
+    .phone iframe { display: block; width: 390px; height: 844px; border: 0; border-radius: 10px 10px 46px 46px; background: #fff; }
+
+    @media (max-width: 60rem) {
+      body { overflow: auto; }
+      .stage { grid-template-columns: 1fr; justify-items: center; height: auto; padding: 5vh 5vw 10vh; }
+      .copy { text-align: center; }
+      .brand, .screens { justify-content: center; }
+      .lede { margin-inline: auto; }
+      .tab { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="tab" aria-hidden="true"></div>
+    <svg class="blob blob-a" viewBox="0 0 100 100" fill="currentColor" aria-hidden="true" id="blob-a"></svg>
+    <svg class="blob blob-b" viewBox="0 0 100 100" fill="currentColor" aria-hidden="true" id="blob-b"></svg>
+
+    <main class="copy">
+      <div class="brand">
+        <img src="logo.svg" alt="">
+        <span class="brand-name">Thrive<span>Together</span></span>
+      </div>
+      <p class="kicker">For autistic and ADHD entrepreneurs</p>
+      <h1>Nobody should build alone</h1>
+      <p class="lede">Swap skills, plan in small steps, and work alongside people who get it.</p>
+
+      <div class="screens" role="group" aria-label="Show a screen in the phone">
+        <button type="button" data-screen="today" style="--c: var(--orange)" aria-pressed="true"><span class="chip" aria-hidden="true" data-icon="today"></span>Today</button>
+        <button type="button" data-screen="plan" style="--c: var(--blue)" aria-pressed="false"><span class="chip" aria-hidden="true" data-icon="plan"></span>Planner</button>
+        <button type="button" data-screen="swap" style="--c: var(--aqua)" aria-pressed="false"><span class="chip" aria-hidden="true" data-icon="swap"></span>Skill swap</button>
+        <button type="button" data-screen="cowork" style="--c: var(--lilac)" aria-pressed="false"><span class="chip" aria-hidden="true" data-icon="cowork"></span>Co-work</button>
+      </div>
+      <a class="open" href="index.html">Open the full app</a>
+    </main>
+
+    <div class="phone-wrap">
+      <div class="phone">
+        <iframe id="app" src="index.html#/today" title="ThriveTogether app, shown on a phone"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { icon } from './js/icons.js';
+
+    // Wavy blobs, same shape as in the app.
+    const blob = `<circle cx="50" cy="50" r="38"/>${Array.from({ length: 12 }, (_, i) => {
+      const a = (i / 12) * Math.PI * 2;
+      return `<circle cx="${50 + 38 * Math.cos(a)}" cy="${50 + 38 * Math.sin(a)}" r="11"/>`;
+    }).join('')}`;
+    document.getElementById('blob-a').innerHTML = blob;
+    document.getElementById('blob-b').innerHTML = blob;
+
+    document.querySelectorAll('[data-icon]').forEach((el) => { el.innerHTML = icon(el.dataset.icon, 22); });
+
+    // Buttons switch the screen inside the phone.
+    const frame = document.getElementById('app');
+    const buttons = document.querySelectorAll('[data-screen]');
+    buttons.forEach((btn) => btn.addEventListener('click', () => {
+      frame.contentWindow.location.hash = `#/${btn.dataset.screen}`;
+    }));
+    // Keep the buttons in sync when someone taps around inside the phone.
+    frame.addEventListener('load', () => {
+      const sync = () => {
+        const route = frame.contentWindow.location.hash.replace('#/', '').split('/')[0] || 'today';
+        buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.screen === route)));
+      };
+      frame.contentWindow.addEventListener('hashchange', sync);
+      sync();
+    });
+
+    // Scale the phone so it always fits the window height.
+    const fit = () => {
+      const s = Math.min(1, (window.innerHeight * 0.92) / 906, (window.innerWidth * 0.9) / 440);
+      document.documentElement.style.setProperty('--s', s.toFixed(3));
+    };
+    window.addEventListener('resize', fit);
+    fit();
+  </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 // Focus mode: one step on screen at a time, with an optional silent timer.
-import { store } from '../store.js';
+import { store, setStepDone, hoursText } from '../store.js';
 import { esc, uid, splitLines } from '../util.js';
 import { announce } from '../ui.js';
 import { icon, pageHead, heading } from '../icons.js';
@@ -71,10 +71,14 @@ export default {
       const splitForm = root.querySelector('#split-form');
       switch (btn.dataset.action) {
         case 'done': {
-          store.update((s) => { s.tasks.find((t) => t.id === taskId).steps.find((st) => !st.done).done = true; });
+          let earned = 0;
+          store.update((s) => {
+            const t = s.tasks.find((x) => x.id === taskId);
+            earned = setStepDone(s, taskId, t.steps.find((st) => !st.done).id, true);
+          });
           ctx.rerender('#focus-text');
           const next = task(taskId).steps.find((st) => !st.done);
-          ctx.announce(next ? `Done. Next step: ${next.text}` : 'All steps are done.');
+          ctx.announce(`+${hoursText(earned)}. ${next ? `Next step: ${next.text}` : 'All steps are done.'}`);
           break;
         }
         case 'split':

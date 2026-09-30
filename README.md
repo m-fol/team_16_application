@@ -47,6 +47,10 @@ The terminal will say `ThriveTogether running at http://localhost:5173`.
 
 Go to **http://localhost:5173** in your browser.
 
+**For presentations:** open **http://localhost:5173/demo.html**. It shows the real app inside a phone frame, next to "Nobody should build alone", with buttons to jump between screens.
+
+**On a phone:** the app switches to a bottom tab bar. Use your browser's **Add to Home Screen** option to install it with the ThriveTogether icon; it then opens full-screen like an app. (To reach it from your phone, the phone and computer must be on the same Wi-Fi, and you open `http://<your-computer's-IP>:5173`.)
+
 ### 5. Stop it
 
 Press **Ctrl + C** in the terminal.
@@ -60,6 +64,22 @@ Press **Ctrl + C** in the terminal.
 ### About the data
 
 All data is stored in your browser (`localStorage`), so each person sees their own copy. The community members and sessions are **fictional seed data** for the prototype. Use *Comfort settings → Start over* to reset them.
+
+## Hours (points)
+
+You earn **hours** for doing things. They show in the header and on the Today page.
+
+| Action | Hours |
+|---|---|
+| Finish a step | +1 |
+| Finish a whole task | +2 bonus |
+| Join a co-work session | +1 |
+| Help someone in a skill swap | +1 per hour of help |
+| Pay for help with hours | − the hours you pay |
+
+Levels: Seed (0), Sprout (10), Growing (25), Blooming (50), Thriving (100).
+
+Designed to motivate without pressure: no streaks, no leaderboards, and nothing is lost for missing a day. Undoing or unticking a step takes its hours back, so points always match real progress.
 
 ## Screens
 
@@ -98,6 +118,8 @@ js/ui.js            Announcements, undo toasts, applying comfort settings
 js/util.js          Escaping, dates, shared vocabularies
 js/icons.js         Icons and page headings
 js/art.js           Line-art illustrations in the style of the slide deck
+demo.html           Presentation page: the app inside a phone frame
+manifest.webmanifest, icons/   Home-screen install (app name, colours, icons)
 js/views/*.js       One file per screen: render() returns HTML, mount() wires events
 ```
 

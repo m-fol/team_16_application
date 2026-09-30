@@ -1,4 +1,4 @@
-import { store, nextStep, currentEnergy } from '../store.js';
+import { store, nextStep, currentEnergy, setStepDone, levelFor, hoursText, EARN } from '../store.js';
 import { esc, ENERGY, todayISO, fmtDateTime, relDays, softDeadline } from '../util.js';
 import { icon, pageHead, heading, ENERGY_ICON } from '../icons.js';
 
@@ -56,6 +56,8 @@ export default {
         ${renderNext(next)}
       </section>
 
+      ${hoursCard(s.hours)}
+
       <section class="card" aria-labelledby="up-h">
         ${heading('up-h', 'calendar', 'Coming up')}
         ${upcoming.length
@@ -86,15 +88,15 @@ export default {
       const { taskId, stepId } = e.target.closest('[data-action]').dataset;
       if (action === 'step-done') {
         let stepText = '';
+        let earned = 0;
         store.update((s) => {
-          const step = s.tasks.find((t) => t.id === taskId).steps.find((st) => st.id === stepId);
-          step.done = true;
-          stepText = step.text;
+          stepText = s.tasks.find((t) => t.id === taskId).steps.find((st) => st.id === stepId).text;
+          earned = setStepDone(s, taskId, stepId, true);
         });
         ctx.rerender('#next-h');
-        ctx.toast(`Done: ${stepText}`, {
+        ctx.toast(`Done: ${stepText} · +${hoursText(earned)}`, {
           undo: () => {
-            store.update((s) => { s.tasks.find((t) => t.id === taskId).steps.find((st) => st.id === stepId).done = false; });
+            store.update((s) => { setStepDone(s, taskId, stepId, false); });
             ctx.rerender('#next-h');
           },
         });
@@ -136,4 +138,25 @@ function renderNext(next) {
   }
   return `<p>All skipped for now.</p>
     <div class="actions"><button type="button" class="btn" data-action="unskip">${icon('reset')}Show again</button></div>`;
+}
+
+// Hours: points you earn by doing things. A level name and one progress bar, nothing to lose.
+function hoursCard(hours) {
+  const level = levelFor(hours);
+  const toNext = level.next ? level.next.min - hours : 0;
+  const pct = level.next ? Math.round(((hours - level.min) / (level.next.min - level.min)) * 100) : 100;
+  return `
+    <section class="card hours-card" aria-labelledby="hours-h">
+      ${heading('hours-h', 'clock', 'Your hours')}
+      <div class="hours-row">
+        <p class="hours-total"><strong>${hours}</strong> <span>${hours === 1 ? 'hour' : 'hours'}</span></p>
+        <p class="hours-level">${icon('sparkle', 22)} ${level.name}</p>
+      </div>
+      ${level.next ? `
+        <div class="progress-row">
+          <progress max="100" value="${pct}" aria-labelledby="hours-next"></progress>
+          <span id="hours-next">${hoursText(toNext)} to ${level.next.name}</span>
+        </div>` : '<p>Top level reached.</p>'}
+      <p class="muted">Step +${EARN.step} · Task +${EARN.task} · Co-work +${EARN.cowork} · Helping someone: +1 per hour</p>
+    </section>`;
 }

@@ -1,5 +1,5 @@
 // Co-work (body doubling): join short sessions where people work side by side.
-import { store } from '../store.js';
+import { store, EARN, hoursText } from '../store.js';
 import { esc, uid, FORMATS, fmtDateTime, todayISO } from '../util.js';
 import { icon, pageHead, heading, FORMAT_ICON } from '../icons.js';
 
@@ -61,10 +61,14 @@ export default {
       if (!btn) return;
       const session = store.state.sessions.find((x) => x.id === btn.dataset.id);
       if (btn.dataset.action === 'join') {
-        store.update(() => { session.joined = !session.joined; });
+        // Joining earns an hour; leaving gives it back, so joining and leaving can't farm points.
+        store.update((s) => {
+          session.joined = !session.joined;
+          s.hours = Math.max(0, s.hours + (session.joined ? EARN.cowork : -EARN.cowork));
+        });
         ctx.rerender(`#join-${session.id}`);
         ctx.announce(session.joined
-          ? `Joined ${session.title}.`
+          ? `Joined ${session.title}. +${hoursText(EARN.cowork)}.`
           : `Left ${session.title}.`);
       }
     });

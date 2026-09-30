@@ -1,5 +1,5 @@
-// Skill swap: exchange skills hour-for-hour, or pay with time credits.
-import { store, findMember, overlap } from '../store.js';
+// Skill swap: exchange skills hour-for-hour, or pay with hours (the app's points).
+import { store, findMember, overlap, hoursText } from '../store.js';
 import { esc, uid, COMMS, hoursLabel } from '../util.js';
 import { icon, pageHead, heading, COMMS_ICON } from '../icons.js';
 
@@ -123,14 +123,14 @@ export default {
         ctx.announce('Request withdrawn.');
       }
       if (action === 'complete') {
+        // You earn hours for the help you give, and spend them when you pay with hours.
+        const paidWithHours = swap.direction === 'out' && swap.iGive === 'credit';
         store.update((s) => {
           swap.status = 'done';
-          if (swap.direction === 'in' && swap.theyGive === 'credit') s.credits += swap.hours;
-          if (swap.direction === 'out' && swap.iGive === 'credit') s.credits -= swap.hours;
+          s.hours = Math.max(0, s.hours + (paidWithHours ? -swap.hours : swap.hours));
         });
         ctx.rerender(`#swap-${id}`);
-        const c = store.state.credits;
-        ctx.announce(`Done. ${c} time ${c === 1 ? 'credit' : 'credits'}.`);
+        ctx.announce(paidWithHours ? `Done. You spent ${hoursText(swap.hours)}.` : `Done. +${hoursText(swap.hours)}.`);
       }
     });
 
@@ -148,7 +148,7 @@ export default {
         return;
       }
       const hours = Number(f.hours.value);
-      if (f.iGive.value === 'credit' && store.state.credits < hours) {
+      if (f.iGive.value === 'credit' && store.state.hours < hours) {
         f.querySelector('#credit-error').hidden = false;
         f.iGive.focus();
         return;
@@ -194,7 +194,7 @@ function memberCard({ m, forMe }, prefix) {
 
 function swapItem(w) {
   const m = findMember(w.memberId);
-  const give = (x) => (x === 'credit' ? 'time credit' : esc(x));
+  const give = (x) => (x === 'credit' ? hoursText(w.hours) : esc(x));
   const summary = w.direction === 'in'
     ? `<strong>${esc(m.name)}</strong> wants ${esc(w.theyWant)}, gives ${give(w.theyGive)}`
     : `You asked <strong>${esc(m.name)}</strong> for ${esc(w.theyGive)}, give ${give(w.iGive)}`;
@@ -244,9 +244,9 @@ function requestForm(m) {
         <label for="iGive">You give</label>
         <select id="iGive" name="iGive" aria-describedby="credit-error">
           ${me.offers.map((o) => `<option ${m.needs.includes(o) ? 'selected' : ''}>${esc(o)}</option>`).join('')}
-          <option value="credit">Time credit (${store.state.credits} left)</option>
+          <option value="credit">My hours (${store.state.hours} left)</option>
         </select>
-        <p class="error" id="credit-error" hidden>Not enough credits.</p>
+        <p class="error" id="credit-error" hidden>Not enough hours.</p>
       </div>
       <fieldset class="field">
         <legend>Time</legend>
@@ -271,7 +271,7 @@ function fillMessage(dialog) {
   const f = dialog.querySelector('form');
   const btn = dialog.querySelector('[data-action="fill-message"]');
   const hours = hoursLabel(Number(f.hours.value));
-  const give = f.iGive.value === 'credit' ? `${hours} of time credit` : f.iGive.value.toLowerCase();
+  const give = f.iGive.value === 'credit' ? `${hours} from my hours` : f.iGive.value.toLowerCase();
   const prefs = btn.dataset.prefs ? `\n\nAbout me: ${btn.dataset.prefs}.` : '';
   f.message.value = `Hi ${btn.dataset.name},\n\nCould you help me with ${f.theyGive.value.toLowerCase()}? I can offer ${give}. About ${hours}.\n\nNo rush.${prefs}`;
   f.message.focus();
