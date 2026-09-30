@@ -13,17 +13,53 @@ Many autistic and ADHD (AuADHD) people leave traditional jobs even though they a
 - **Co-work (body doubling).** Join short sessions where people work side by side. Silent, text-only and camera-optional formats are available.
 - **Show your work, not your interview skills.** Profiles focus on a portfolio and a "how I like to work" card.
 
-## Run it
+## Run it: quick tutorial
 
-It needs [Node.js](https://nodejs.org) 18 or newer and has no dependencies to install.
+### 1. Install Node.js (one time only)
+
+Download and install **Node.js 18 or newer** from https://nodejs.org (the "LTS" version is fine).
+Check that it worked by opening a terminal and typing:
+
+```bash
+node -v
+```
+
+You should see a version number like `v20.11.0`. There are no other packages to install.
+
+### 2. Get the code
+
+```bash
+git clone https://github.com/m-fol/team_16_application.git
+cd team_16_application
+```
+
+No Git? On GitHub, click **Code → Download ZIP**, unzip it, and open a terminal in that folder.
+
+### 3. Start the app
 
 ```bash
 npm start
 ```
 
-Then open http://localhost:5173.
+The terminal will say `ThriveTogether running at http://localhost:5173`.
 
-All data is stored in the browser (`localStorage`). The community members and sessions are **fictional seed data** for the prototype. Use *Comfort settings → Start over* to reset them.
+### 4. Open it
+
+Go to **http://localhost:5173** in your browser.
+
+### 5. Stop it
+
+Press **Ctrl + C** in the terminal.
+
+### Troubleshooting
+
+- **Opening `index.html` directly (double-click) shows a blank page.** Browsers block the app's JavaScript files when a page is opened as a file. Always use `npm start`.
+- **"Port 5173 is already in use."** The app is probably already running in another terminal, so just open the link. Or start it on another port: `PORT=3000 npm start` (Mac/Linux) or `$env:PORT=3000; npm start` (Windows PowerShell).
+- **`npm` is not recognised.** Node.js isn't installed, or the terminal was open before you installed it. Close and reopen the terminal.
+
+### About the data
+
+All data is stored in your browser (`localStorage`), so each person sees their own copy. The community members and sessions are **fictional seed data** for the prototype. Use *Comfort settings → Start over* to reset them.
 
 ## Screens
 
