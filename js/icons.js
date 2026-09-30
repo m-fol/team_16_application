@@ -1,3 +1,5 @@
+import { art } from './art.js';
+
 // Inline SVG icons (24×24 grid, stroke-based). Always decorative: the text next to them carries meaning.
 
 const P = {
@@ -38,6 +40,18 @@ const P = {
   info: '<circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.5"/>',
   save: '<path d="M5 3.5h11l3.5 3.5v13H4.5V3.5z"/><path d="M8 3.5v5h7v-5M8 20.5v-6h8v6"/>',
   talk: '<path d="M4 5h11v8H8l-4 3z"/><path d="M15 9h5v8l-3-2.5h-6V13"/>',
+  text: '<path d="M5 5.5h14M12 5.5V20M9 20h6"/>',
+  moon: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/>',
+  auto: '<circle cx="12" cy="12" r="9.5"/><path d="M12 2.5v19A9.5 9.5 0 0 0 12 2.5z" fill="currentColor"/>',
+  contrast: '<rect x="2.5" y="2.5" width="19" height="19" rx="4"/><path d="M2.5 21.5L21.5 2.5V17.5a4 4 0 0 1-4 4z" fill="currentColor"/>',
+  'lines-tight': '<path d="M4 8h16M4 11h16M4 14h16M4 17h11"/>',
+  'lines-mid': '<path d="M4 6h16M4 10.5h16M4 15h16M4 19.5h11"/>',
+  'lines-wide': '<path d="M4 4h16M4 10h16M4 16h16M4 22h11"/>',
+  'motion-off': '<circle cx="12" cy="12" r="9.5"/><path d="M5.5 5.5l13 13"/>',
+  pen: '<path d="M4 20l1-4.5L16 4.5a2.1 2.1 0 0 1 3 3L8 18.5z"/><path d="M14 7l3 3"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',
+  'camera-off': '<rect x="2.5" y="6.5" width="13" height="11" rx="2"/><path d="M15.5 10.5l6-3.5v10l-6-3.5M2 3l20 18"/>',
+  'talk-off': '<path d="M4 5h11v8H8l-4 3z"/><path d="M3 3l18 18"/>',
 };
 
 export function icon(name, size = 24) {
@@ -54,7 +68,10 @@ const BLOB = `<circle cx="50" cy="50" r="38"/>${Array.from({ length: 12 }, (_, i
 export function pageHead(iconName, title, lede = '') {
   return `
     <div class="page-head">
-      <svg class="page-blob" aria-hidden="true" focusable="false" viewBox="0 0 100 100" fill="currentColor">${BLOB}</svg>
+      <div class="page-visual" aria-hidden="true">
+        <svg class="page-blob" focusable="false" viewBox="0 0 100 100" fill="currentColor">${BLOB}</svg>
+        ${art(iconName)}
+      </div>
       <span class="page-icon tile-icon">${icon(iconName, 46)}</span>
       <div>
         <h1 tabindex="-1">${title}</h1>
@@ -69,6 +86,11 @@ export function heading(id, iconName, text, level = 2) {
 }
 
 export const ENERGY_ICON = { low: 'battery-low', some: 'battery-some', plenty: 'battery-plenty' };
+
+export const COMMS_ICON = {
+  written: 'pen', agenda: 'list', 'no-camera': 'camera-off', slow: 'clock',
+  direct: 'focus', 'no-smalltalk': 'talk-off', 'voice-notes': 'mic',
+};
 
 export const FORMAT_ICON = {
   silent: 'quiet', 'text-only': 'message', 'camera-optional': 'camera',

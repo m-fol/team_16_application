@@ -1,39 +1,39 @@
 // Comfort settings: sensory and reading preferences. Changes apply immediately.
 import { store } from '../store.js';
-import { esc, download } from '../util.js';
+import { esc } from '../util.js';
 import { icon, pageHead } from '../icons.js';
 
 const GROUPS = [
   {
     key: 'theme', legend: 'Colours', icon: 'sparkle',
     options: [
-      ['system', 'Automatic'],
-      ['calm', 'Light'],
-      ['dark', 'Dark'],
-      ['contrast', 'High contrast'],
+      ['system', 'Automatic', 'auto'],
+      ['calm', 'Light', 'today'],
+      ['dark', 'Dark', 'moon'],
+      ['contrast', 'High contrast', 'contrast'],
     ],
   },
   {
-    key: 'textSize', legend: 'Text size', icon: 'search',
-    options: [['s', 'Standard'], ['m', 'Larger'], ['l', 'Large'], ['xl', 'Extra large']],
+    key: 'textSize', legend: 'Text size', icon: 'text',
+    options: [['s', 'Standard', 'text'], ['m', 'Larger', 'text'], ['l', 'Large', 'text'], ['xl', 'Extra large', 'text']],
   },
   {
-    key: 'font', legend: 'Font', icon: 'message',
+    key: 'font', legend: 'Font', icon: 'pen',
     options: [
-      ['hyperlegible', 'Atkinson Hyperlegible'],
-      ['verdana', 'Verdana'],
-      ['system', 'Device font'],
+      ['hyperlegible', 'Atkinson Hyperlegible', 'text'],
+      ['verdana', 'Verdana', 'text'],
+      ['system', 'Device font', 'text'],
     ],
   },
   {
     key: 'spacing', legend: 'Spacing', icon: 'list',
-    options: [['normal', 'Normal'], ['relaxed', 'Relaxed'], ['spacious', 'Spacious']],
+    options: [['normal', 'Normal', 'lines-tight'], ['relaxed', 'Relaxed', 'lines-mid'], ['spacious', 'Spacious', 'lines-wide']],
   },
   {
-    key: 'motion', legend: 'Movement', icon: 'pause',
+    key: 'motion', legend: 'Movement', icon: 'motion-off',
     options: [
-      ['system', 'Automatic'],
-      ['reduce', 'None'],
+      ['system', 'Automatic', 'auto'],
+      ['reduce', 'None', 'motion-off'],
     ],
   },
 ];
@@ -57,7 +57,7 @@ export default {
             <legend class="with-icon">${icon('eye', 26)}<span>Less to look at</span></legend>
             <div class="field-check">
               <input type="checkbox" id="lowStim" name="lowStim" ${st.lowStim ? 'checked' : ''}>
-              <label for="lowStim">Low-stimulation mode</label>
+              <label for="lowStim" class="with-icon-inline">${icon('eye', 24)} Low-stimulation mode</label>
             </div>
           </fieldset>
 
@@ -72,7 +72,6 @@ export default {
             <p class="with-icon"><strong>${icon('save', 26)}</strong><strong>Your data</strong></p>
             <p>Saved only on this device.</p>
             <div class="actions">
-              <button type="button" class="btn" data-action="export">${icon('download')}Download</button>
               <button type="button" class="btn btn-quiet" data-action="reset">${icon('reset')}Start over</button>
             </div>
           </div>
@@ -95,10 +94,6 @@ export default {
 
     root.addEventListener('click', (e) => {
       const action = e.target.closest('[data-action]')?.dataset.action;
-      if (action === 'export') {
-        download('thrivetogether-data.json', JSON.stringify(store.state, null, 2), 'application/json');
-        ctx.announce('Downloaded.');
-      }
       if (action === 'reset') {
         // eslint-disable-next-line no-alert
         if (!window.confirm('Start over? This deletes everything on this device.')) return;
@@ -117,14 +112,20 @@ function group(g, st, asCard) {
     <fieldset class="${asCard ? 'card' : 'field'}">
       <legend class="${asCard ? 'card-legend ' : ''}with-icon">${icon(g.icon, asCard ? 30 : 26)}<span>${g.legend}</span></legend>
       <div class="choices">
-        ${g.options.map(([value, label, hint]) => `
-          <label class="choice">
+        ${g.options.map(([value, label, iconName]) => `
+          <label class="choice choice-iconed">
             <input type="radio" name="${g.key}" id="${g.key}-${value}" value="${value}" ${st[g.key] === value ? 'checked' : ''}>
+            <span class="choice-icon" aria-hidden="true">${optionIcon(g.key, value, iconName)}</span>
             <span class="choice-title">${esc(label)}</span>
             ${g.key === 'theme' ? `<span class="swatch swatch-${value}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>` : ''}
-            ${g.key === 'textSize' ? `<span class="size-sample size-${value}" aria-hidden="true">Aa</span>` : ''}
-            ${hint ? `<span class="choice-hint">${esc(hint)}</span>` : ''}
           </label>`).join('')}
       </div>
     </fieldset>`;
+}
+
+// Text size and font options show a live "Aa" sample instead of a pictogram.
+function optionIcon(key, value, iconName) {
+  if (key === 'textSize') return `<span class="size-sample size-${value}">Aa</span>`;
+  if (key === 'font') return `<span class="font-sample font-${value}">Aa</span>`;
+  return icon(iconName, 30);
 }

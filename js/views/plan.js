@@ -67,18 +67,21 @@ export default {
               ${Object.entries(TEMPLATES).map(([k, t]) => `<option value="${k}">${esc(t.title)}</option>`).join('')}
             </select>
           </div>
-          <div class="field-row">
-            <div class="field">
-              <label for="t-deadline">Deadline</label>
-              <input type="date" id="t-deadline" name="deadline">
-            </div>
-            <div class="field">
-              <label for="t-energy">Energy</label>
-              <select id="t-energy" name="energy">
-                ${Object.entries(ENERGY).map(([k, e]) => `<option value="${k}" ${k === 'some' ? 'selected' : ''}>${e.label}</option>`).join('')}
-              </select>
-            </div>
+          <div class="field">
+            <label for="t-deadline">Deadline</label>
+            <input type="date" id="t-deadline" name="deadline">
           </div>
+          <fieldset class="field">
+            <legend>Energy</legend>
+            <div class="choices">
+              ${Object.entries(ENERGY).map(([k, e]) => `
+                <label class="choice choice-energy energy-${k}">
+                  <input type="radio" name="energy" value="${k}" ${k === 'some' ? 'checked' : ''}>
+                  <span class="choice-icon" aria-hidden="true">${icon(ENERGY_ICON[k], 40)}</span>
+                  <span class="choice-title">${e.label}</span>
+                </label>`).join('')}
+            </div>
+          </fieldset>
           <button type="submit" class="btn btn-primary">${icon('plus')}Add task</button>
         </form>
       </details>
@@ -147,22 +150,7 @@ export default {
     root.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
       if (!btn) return;
-      const { taskId, stepId } = btn.dataset;
-      if (btn.dataset.action === 'remove-step') {
-        let removed; let index;
-        store.update((s) => {
-          const task = s.tasks.find((t) => t.id === taskId);
-          index = task.steps.findIndex((st) => st.id === stepId);
-          [removed] = task.steps.splice(index, 1);
-        });
-        ctx.rerender(`#ns-${taskId}`);
-        ctx.toast(`Removed: ${removed.text}`, {
-          undo: () => {
-            store.update((s) => { s.tasks.find((t) => t.id === taskId).steps.splice(index, 0, removed); });
-            ctx.rerender(`#st-${stepId}`);
-          },
-        });
-      }
+      const { taskId } = btn.dataset;
       if (btn.dataset.action === 'delete-task') {
         let removed; let index;
         store.update((s) => {
@@ -208,9 +196,6 @@ function taskCard(t, buffer) {
           <li class="${st.done ? 'is-done' : ''}">
             <input type="checkbox" id="st-${st.id}" data-task-id="${t.id}" data-step-id="${st.id}" ${st.done ? 'checked' : ''}>
             <label for="st-${st.id}">${esc(st.text)}</label>
-            <button type="button" class="btn-icon" data-action="remove-step" data-task-id="${t.id}" data-step-id="${st.id}" aria-label="Remove step: ${esc(st.text)}">
-              ${icon('close', 22)}
-            </button>
           </li>`).join('')}
       </ul>
       <form class="inline-add" data-task-id="${t.id}">

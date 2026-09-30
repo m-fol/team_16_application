@@ -59,7 +59,6 @@ export default {
         <p id="timer-done" class="timer-done" ${timer.remaining === 0 ? '' : 'hidden'}>Time is up.</p>
         <div class="actions">
           <button type="button" class="btn btn-primary" id="timer-toggle" data-action="toggle">${toggleLabel()}</button>
-          <button type="button" class="btn" id="timer-reset" data-action="reset">${icon('reset')}Reset</button>
         </div>
       </section>
     `;
@@ -98,12 +97,6 @@ export default {
           else start();
           paint();
           announce(timer.running ? 'Timer started.' : 'Timer paused.');
-          break;
-        case 'reset':
-          stop();
-          timer.remaining = timer.total;
-          paint();
-          announce('Timer reset.');
           break;
       }
     });

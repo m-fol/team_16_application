@@ -1,3 +1,5 @@
+import { icon } from './icons.js';
+
 // Accessibility plumbing: screen reader announcements, undo toasts, and applying comfort settings.
 
 const live = () => document.getElementById('live');
@@ -28,7 +30,9 @@ export function toast(message, { undo } = {}) {
     });
     box.append(btn);
   }
-  const close = button('Close message', 'btn btn-quiet');
+  const close = button('', 'toast-close');
+  close.setAttribute('aria-label', 'Close message');
+  close.innerHTML = icon('close', 22);
   close.addEventListener('click', () => { region.innerHTML = ''; });
   box.append(close);
   region.append(box);

@@ -96,6 +96,8 @@ js/app.js           Hash router, focus management
 js/store.js         State, seed data, persistence, matching logic
 js/ui.js            Announcements, undo toasts, applying comfort settings
 js/util.js          Escaping, dates, shared vocabularies
+js/icons.js         Icons and page headings
+js/art.js           Line-art illustrations in the style of the slide deck
 js/views/*.js       One file per screen: render() returns HTML, mount() wires events
 ```
 

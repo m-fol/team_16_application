@@ -1,6 +1,6 @@
 // Co-work (body doubling): join short sessions where people work side by side.
 import { store } from '../store.js';
-import { esc, uid, FORMATS, fmtDateTime, todayISO, download } from '../util.js';
+import { esc, uid, FORMATS, fmtDateTime, todayISO } from '../util.js';
 import { icon, pageHead, heading, FORMAT_ICON } from '../icons.js';
 
 export default {
@@ -67,10 +67,6 @@ export default {
           ? `Joined ${session.title}.`
           : `Left ${session.title}.`);
       }
-      if (btn.dataset.action === 'ics') {
-        download(`${session.title.replace(/[^\w]+/g, '-')}.ics`, ics(session), 'text/calendar');
-        ctx.announce('Calendar file downloaded.');
-      }
     });
 
     const form = root.querySelector('#host-form');
@@ -111,19 +107,6 @@ function sessionCard(x) {
         <button type="button" class="btn ${x.joined ? '' : 'btn-primary'}" id="join-${x.id}" data-action="join" data-id="${x.id}" aria-pressed="${x.joined}">
           ${x.joined ? `${icon('check')}Joined` : `${icon('plus')}Join`}<span class="visually-hidden"> ${esc(x.title)}</span>
         </button>
-        <button type="button" class="btn btn-quiet" data-action="ics" data-id="${x.id}">${icon('calendar')}Calendar<span class="visually-hidden"> (${esc(x.title)})</span></button>
       </div>
     </article>`;
-}
-
-function ics(x) {
-  const stamp = (d) => new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-  const end = new Date(new Date(x.start).getTime() + x.minutes * 6e4);
-  return [
-    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//ThriveTogether//EN', 'BEGIN:VEVENT',
-    `UID:${x.id}@thrivetogether`, `DTSTAMP:${stamp(Date.now())}`, `DTSTART:${stamp(x.start)}`, `DTEND:${stamp(end)}`,
-    `SUMMARY:${x.title} (co-work)`, `DESCRIPTION:${x.description.replace(/\n/g, '\\n')}`,
-    'BEGIN:VALARM', 'TRIGGER:-PT15M', 'ACTION:DISPLAY', 'DESCRIPTION:Co-work starts in 15 minutes', 'END:VALARM',
-    'END:VEVENT', 'END:VCALENDAR',
-  ].join('\r\n');
 }

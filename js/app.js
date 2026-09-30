@@ -58,7 +58,11 @@ const ctx = {
 
 function onRoute() {
   const { name } = parse();
-  if (currentName && currentName !== name) routes[currentName].unmount?.();
+  if (currentName && currentName !== name) {
+    routes[currentName].unmount?.();
+    // An undo message belongs to the page it was shown on.
+    document.getElementById('toast-region').replaceChildren();
+  }
   currentName = name;
   const { view, params } = draw();
   const title = typeof view.title === 'function' ? view.title(params) : view.title;

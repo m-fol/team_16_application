@@ -84,12 +84,3 @@ export function splitList(text) {
 export function splitLines(text) {
   return text.split('\n').map((s) => s.trim()).filter(Boolean);
 }
-
-export function download(filename, text, type) {
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const a = Object.assign(document.createElement('a'), { href: url, download: filename });
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}

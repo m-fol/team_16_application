@@ -1,7 +1,7 @@
 // Profile: a "how I work" card and a portfolio instead of an interview.
 import { store } from '../store.js';
 import { esc, COMMS, splitList } from '../util.js';
-import { icon, pageHead, heading } from '../icons.js';
+import { icon, pageHead, heading, COMMS_ICON } from '../icons.js';
 
 export default {
   title: 'My profile',
@@ -33,12 +33,13 @@ export default {
         ${heading('work-h', 'message', 'How I like to work')}
         <fieldset class="field">
           <legend class="visually-hidden">Communication preferences</legend>
-          <div class="check-grid">
+          <div class="choices">
             ${Object.entries(COMMS).map(([k, label]) => `
-              <div class="field-check">
+              <label class="choice choice-iconed">
                 <input type="checkbox" id="c-${k}" name="comms" value="${k}" ${p.comms.includes(k) ? 'checked' : ''}>
-                <label for="c-${k}">${esc(label)}</label>
-              </div>`).join('')}
+                <span class="choice-icon" aria-hidden="true">${icon(COMMS_ICON[k], 28)}</span>
+                <span class="choice-title">${esc(label)}</span>
+              </label>`).join('')}
           </div>
         </fieldset>
         <div class="field">

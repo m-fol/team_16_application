@@ -1,7 +1,7 @@
 // Skill swap: exchange skills hour-for-hour, or pay with time credits.
 import { store, findMember, overlap } from '../store.js';
 import { esc, uid, COMMS, hoursLabel } from '../util.js';
-import { icon, pageHead, heading } from '../icons.js';
+import { icon, pageHead, heading, COMMS_ICON } from '../icons.js';
 
 const STATUS = {
   pending: 'Waiting',
@@ -167,7 +167,7 @@ export default {
 };
 
 function commsList(comms) {
-  return comms.length ? `<ul class="comms">${comms.map((c) => `<li>${esc(COMMS[c])}</li>`).join('')}</ul>` : '';
+  return comms.length ? `<ul class="comms">${comms.map((c) => `<li>${icon(COMMS_ICON[c], 22)}${esc(COMMS[c])}</li>`).join('')}</ul>` : '';
 }
 
 function memberCard({ m, forMe }, prefix) {
