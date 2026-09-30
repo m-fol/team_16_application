@@ -3,36 +3,29 @@ import { store } from '../store.js';
 import { esc, uid, FORMATS, fmtDateTime, todayISO, download } from '../util.js';
 import { icon, pageHead, heading, FORMAT_ICON } from '../icons.js';
 
-let noTalkingOnly = false;
-
 export default {
   title: 'Co-work',
 
   render() {
     const s = store.state;
     const now = Date.now();
-    let sessions = s.sessions
+    const sessions = s.sessions
       .filter((x) => new Date(x.start).getTime() + x.minutes * 6e4 > now)
       .sort((a, b) => a.start.localeCompare(b.start));
-    if (noTalkingOnly) sessions = sessions.filter((x) => !x.formats.includes('talking'));
 
     return `
-      ${pageHead('cowork', 'Co-work sessions', 'Body doubling means working while someone else works too. Many people find it easier to start and to keep going. You do not have to talk or turn on your camera.')}
+      ${pageHead('cowork', 'Co-work sessions', 'Work next to other people online. It makes starting easier. No need to talk or use your camera.')}
 
       <section aria-labelledby="list-h">
         ${heading('list-h', 'calendar', 'Upcoming sessions')}
-        <div class="field-check">
-          <input type="checkbox" id="no-talking" ${noTalkingOnly ? 'checked' : ''}>
-          <label for="no-talking">Only show sessions where no talking is needed</label>
-        </div>
-        ${sessions.length ? sessions.map(sessionCard).join('') : '<p class="muted">No sessions match. You could host one below.</p>'}
+        ${sessions.length ? sessions.map(sessionCard).join('') : '<p class="muted">No sessions right now. You could host one below.</p>'}
       </section>
 
-      <section class="card" aria-labelledby="host-h">
-        ${heading('host-h', 'plus', 'Host a session')}
+      <details class="card disclosure">
+        <summary id="host-h">${icon('plus', 28)} Host a session</summary>
         <form id="host-form" novalidate>
           <div class="field">
-            <label for="h-title">Name <span class="req">(required)</span></label>
+            <label for="h-title">Name</label>
             <input id="h-title" name="title" autocomplete="off" aria-describedby="h-title-error">
             <p class="error" id="h-title-error" hidden>Please give the session a name.</p>
           </div>
@@ -57,21 +50,16 @@ export default {
             </div>
           </fieldset>
           <div class="field">
-            <label for="h-desc">What will happen? (helps people feel safe to join)</label>
+            <label for="h-desc">What will happen?</label>
             <textarea id="h-desc" name="description" rows="3">Say hello in the chat, then we work quietly. Leave whenever you want.</textarea>
           </div>
           <button type="submit" class="btn btn-primary">${icon('plus')}Create session</button>
         </form>
-      </section>
+      </details>
     `;
   },
 
   mount(root, _params, ctx) {
-    root.querySelector('#no-talking').addEventListener('change', (e) => {
-      noTalkingOnly = e.target.checked;
-      ctx.rerender('#no-talking');
-    });
-
     root.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
       if (!btn) return;

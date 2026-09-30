@@ -1,7 +1,7 @@
 // Comfort settings: sensory and reading preferences. Changes apply immediately.
 import { store } from '../store.js';
 import { esc, download } from '../util.js';
-import { icon, pageHead, heading } from '../icons.js';
+import { icon, pageHead } from '../icons.js';
 
 const GROUPS = [
   {
@@ -44,53 +44,42 @@ export default {
   render() {
     const st = store.state.settings;
     return `
-      ${pageHead('settings', 'Comfort settings', 'Make ThriveTogether feel right for your senses. Changes happen straight away and are saved on this device.')}
+      ${pageHead('settings', 'Comfort settings', 'Changes happen straight away.')}
 
       <form id="settings-form">
-        ${GROUPS.map((g) => `
-          <fieldset class="card">
-            <legend class="card-legend with-icon">${icon(g.icon, 30)}<span>${g.legend}</span></legend>
-            <div class="choices">
-              ${g.options.map(([value, label, hint]) => `
-                <label class="choice">
-                  <input type="radio" name="${g.key}" id="${g.key}-${value}" value="${value}" ${st[g.key] === value ? 'checked' : ''}>
-                  <span class="choice-title">${esc(label)}</span>
-                  ${g.key === 'theme' ? `<span class="swatch swatch-${value}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>` : ''}
-                  ${g.key === 'textSize' ? `<span class="size-sample size-${value}" aria-hidden="true">Aa</span>` : ''}
-                  ${hint ? `<span class="choice-hint">${esc(hint)}</span>` : ''}
-                </label>`).join('')}
+        ${GROUPS.slice(0, 2).map((g) => group(g, st, true)).join('')}
+
+        <details class="card disclosure">
+          <summary>${icon('settings', 28)} More options</summary>
+          ${GROUPS.slice(2).map((g) => group(g, st, false)).join('')}
+
+          <fieldset class="field">
+            <legend class="with-icon">${icon('eye', 26)}<span>Less to look at</span></legend>
+            <div class="field-check">
+              <input type="checkbox" id="lowStim" name="lowStim" ${st.lowStim ? 'checked' : ''} aria-describedby="lowstim-hint">
+              <label for="lowStim">Low-stimulation mode</label>
             </div>
-          </fieldset>`).join('')}
+            <p class="hint" id="lowstim-hint">Removes most colour and decoration.</p>
+          </fieldset>
 
-        <fieldset class="card">
-          <legend class="card-legend with-icon">${icon('eye', 30)}<span>Less to look at</span></legend>
-          <div class="field-check">
-            <input type="checkbox" id="lowStim" name="lowStim" ${st.lowStim ? 'checked' : ''} aria-describedby="lowstim-hint">
-            <label for="lowStim">Low-stimulation mode</label>
-          </div>
-          <p class="hint" id="lowstim-hint">Removes colour from labels and hides decorative extras.</p>
-        </fieldset>
-
-        <fieldset class="card">
-          <legend class="card-legend with-icon">${icon('calendar', 30)}<span>Deadlines</span></legend>
           <div class="field">
-            <label for="bufferDays">Aim to finish this many days before a real deadline</label>
+            <label for="bufferDays" class="with-icon">${icon('calendar', 26)}<span>Aim to finish this many days before a deadline</span></label>
             <select id="bufferDays" name="bufferDays">
               ${[0, 1, 2, 3, 5, 7].map((n) => `<option value="${n}" ${st.bufferDays === n ? 'selected' : ''}>${n} ${n === 1 ? 'day' : 'days'}</option>`).join('')}
             </select>
           </div>
-        </fieldset>
-      </form>
 
-      <section class="card" aria-labelledby="data-h">
-        ${heading('data-h', 'save', 'Your data')}
-        <p>Everything is stored only in this browser. Nothing is sent anywhere.</p>
-        <div class="actions">
-          <button type="button" class="btn" data-action="export">${icon('download')}Download my data</button>
-          <button type="button" class="btn btn-quiet" data-action="reset" aria-describedby="reset-hint">${icon('reset')}Start over</button>
-        </div>
-        <p class="hint" id="reset-hint">“Start over” removes your tasks, profile and settings. You will be asked to confirm.</p>
-      </section>
+          <div class="field">
+            <p class="with-icon"><strong>${icon('save', 26)}</strong><strong>Your data</strong></p>
+            <p>Everything is stored only in this browser. Nothing is sent anywhere.</p>
+            <div class="actions">
+              <button type="button" class="btn" data-action="export">${icon('download')}Download my data</button>
+              <button type="button" class="btn btn-quiet" data-action="reset" aria-describedby="reset-hint">${icon('reset')}Start over</button>
+            </div>
+            <p class="hint" id="reset-hint">“Start over” removes your tasks, profile and settings. You will be asked to confirm.</p>
+          </div>
+        </details>
+      </form>
     `;
   },
 
@@ -123,3 +112,21 @@ export default {
     });
   },
 };
+
+// One group of big radio choices. Main groups are cards; the rest sit inside "More options".
+function group(g, st, asCard) {
+  return `
+    <fieldset class="${asCard ? 'card' : 'field'}">
+      <legend class="${asCard ? 'card-legend ' : ''}with-icon">${icon(g.icon, asCard ? 30 : 26)}<span>${g.legend}</span></legend>
+      <div class="choices">
+        ${g.options.map(([value, label, hint]) => `
+          <label class="choice">
+            <input type="radio" name="${g.key}" id="${g.key}-${value}" value="${value}" ${st[g.key] === value ? 'checked' : ''}>
+            <span class="choice-title">${esc(label)}</span>
+            ${g.key === 'theme' ? `<span class="swatch swatch-${value}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>` : ''}
+            ${g.key === 'textSize' ? `<span class="size-sample size-${value}" aria-hidden="true">Aa</span>` : ''}
+            ${hint ? `<span class="choice-hint">${esc(hint)}</span>` : ''}
+          </label>`).join('')}
+      </div>
+    </fieldset>`;
+}

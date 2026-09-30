@@ -49,6 +49,8 @@ const ctx = {
     // Headings and other static targets need tabindex to receive focus.
     if (!target.matches('a[href], button, input, select, textarea, [tabindex]')) target.setAttribute('tabindex', '-1');
     target.focus({ preventScroll: true });
+    // The target may be hidden (e.g. inside a closed <details>): never leave focus on <body>.
+    if (document.activeElement !== target) main.querySelector('h1')?.focus({ preventScroll: true });
   },
   navigate(hash) { location.hash = hash; },
   applySettings: () => applySettings(store.state.settings),
@@ -79,6 +81,9 @@ function onRoute() {
 // Big icons in the main navigation.
 document.querySelectorAll('.nav-list a[data-route]').forEach((a) => {
   a.innerHTML = `${icon(a.dataset.route, 32)}<span>${a.textContent}</span>`;
+});
+document.querySelectorAll('.header-links a[data-route]').forEach((a) => {
+  a.innerHTML = `${icon(a.dataset.route, 24)}<span>${a.textContent}</span>`;
 });
 
 document.querySelector('.skip-link').addEventListener('click', (e) => {

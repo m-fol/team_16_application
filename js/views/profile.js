@@ -9,7 +9,7 @@ export default {
   render() {
     const p = store.state.profile;
     return `
-      ${pageHead('profile', 'My profile', 'Show your work, not your interview skills. Tell people how you like to communicate, so they can meet you where you are.')}
+      ${pageHead('profile', 'My profile', 'Show your work, not your interview skills.')}
 
       <form id="profile-form" class="card">
         ${heading('about-h', 'profile', 'About me')}
@@ -51,23 +51,9 @@ export default {
           <textarea id="p-portfolio" name="portfolio" rows="3">${esc(p.portfolio)}</textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary">${icon('save')}Save profile</button>
+        <button type="submit" class="btn btn-primary" id="save-profile">${icon('save')}Save profile</button>
       </form>
 
-      <section aria-labelledby="preview-h">
-        ${heading('preview-h', 'eye', 'How others see you')}
-        <article class="card member">
-          <h3 class="member-name"><span class="avatar" aria-hidden="true">${esc((p.name || '?').split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase())}</span>${esc(p.name || 'Your name')} ${p.pronouns ? `<span class="muted small">(${esc(p.pronouns)})</span>` : ''}</h3>
-          <p class="muted">${esc(p.business || 'Your business')}</p>
-          <dl class="skills">
-            <dt>Offers</dt><dd>${p.offers.map((o) => `<span class="chip">${esc(o)}</span>`).join(' ') || '—'}</dd>
-            <dt>Needs</dt><dd>${p.needs.map((o) => `<span class="chip">${esc(o)}</span>`).join(' ') || '—'}</dd>
-          </dl>
-          ${p.comms.length ? `<ul class="comms">${p.comms.map((c) => `<li>${esc(COMMS[c])}</li>`).join('')}</ul>` : ''}
-          ${p.about ? `<p>${esc(p.about)}</p>` : ''}
-          ${p.portfolio ? `<p><strong>Work:</strong> ${esc(p.portfolio)}</p>` : ''}
-        </article>
-      </section>
     `;
   },
 
@@ -87,8 +73,8 @@ export default {
           portfolio: form.portfolio.value.trim(),
         });
       });
-      ctx.rerender('#preview-h');
-      ctx.announce('Profile saved. The preview below is updated.');
+      ctx.rerender('#save-profile');
+      ctx.announce('Profile saved.');
     });
   },
 };

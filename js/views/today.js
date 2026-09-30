@@ -1,5 +1,5 @@
-import { store, nextStep, currentEnergy, byUrgency } from '../store.js';
-import { esc, ENERGY, todayISO, fmtDate, fmtDateTime, relDays, softDeadline } from '../util.js';
+import { store, nextStep, currentEnergy } from '../store.js';
+import { esc, ENERGY, todayISO, fmtDateTime, relDays, softDeadline } from '../util.js';
 import { icon, pageHead, heading, ENERGY_ICON } from '../icons.js';
 
 export default {
@@ -12,33 +12,35 @@ export default {
     const next = nextStep(s);
     const now = Date.now();
 
-    const joined = s.sessions
-      .filter((x) => x.joined && new Date(x.start).getTime() + x.minutes * 6e4 > now)
-      .sort((a, b) => a.start.localeCompare(b.start));
-    const deadlines = s.tasks
-      .filter((t) => t.deadline && t.steps.some((st) => !st.done))
-      .sort(byUrgency(s.settings.bufferDays))
-      .slice(0, 3);
-    const incoming = s.swaps.filter((w) => w.direction === 'in' && w.status === 'pending');
+    // "Coming up": at most three things, soonest first. Nothing else competes with the next step.
+    const upcoming = [
+      ...s.tasks
+        .filter((t) => t.deadline && t.steps.some((st) => !st.done))
+        .map((t) => {
+          const soft = softDeadline(t.deadline, s.settings.bufferDays);
+          return { at: `${soft}T23:59`, icon: 'plan', html: `<strong>${esc(t.title)}</strong><br><span class="muted">Aim to finish ${relDays(soft)}</span>` };
+        }),
+      ...s.sessions
+        .filter((x) => x.joined && new Date(x.start).getTime() + x.minutes * 6e4 > now)
+        .map((x) => ({ at: x.start, icon: 'cowork', html: `<strong>${esc(x.title)}</strong><br><span class="muted">${fmtDateTime(x.start)}</span>` })),
+    ].sort((a, b) => new Date(a.at) - new Date(b.at)).slice(0, 3);
+    const incoming = s.swaps.filter((w) => w.direction === 'in' && w.status === 'pending').length;
 
     return `
-      ${pageHead('today', name ? `Hello, ${esc(name)}` : 'Hello', `${fmtDate(todayISO())}. One small step is enough.`)}
+      ${pageHead('today', name ? `Hello, ${esc(name)}` : 'Hello', 'One small step is enough.')}
 
       ${s.settings.onboarded ? '' : `
         <section class="card card-note" aria-labelledby="welcome-h">
           ${heading('welcome-h', 'sparkle', 'Welcome to ThriveTogether')}
-          <p>ThriveTogether is a community for autistic and ADHD business owners. You can swap skills, plan in small steps, and work alongside others.</p>
-          <p>First, make the app comfortable for you: colours, text size, fonts, and movement.</p>
+          <p>Swap skills, plan in small steps, and work alongside others.</p>
           <div class="actions">
-            <a class="btn btn-primary" href="#/settings">${icon('settings')}Open comfort settings</a>
-            <a class="btn" href="#/profile">${icon('profile')}Fill in my profile</a>
-            <button type="button" class="btn btn-quiet" data-action="dismiss-welcome">Hide this message</button>
+            <a class="btn btn-primary" href="#/settings">${icon('settings')}Make it comfortable for me</a>
+            <button type="button" class="btn btn-quiet" data-action="dismiss-welcome">Hide this</button>
           </div>
         </section>`}
 
       <section class="card" aria-labelledby="energy-h">
-        ${heading('energy-h', 'battery-some', 'How much energy do you have right now?')}
-        <p class="muted">This only changes what we suggest. It is private and you can change it any time.</p>
+        ${heading('energy-h', 'battery-some', 'How is your energy?')}
         <fieldset class="choices">
           <legend class="visually-hidden">Energy level</legend>
           ${Object.entries(ENERGY).map(([key, e]) => `
@@ -46,7 +48,6 @@ export default {
               <input type="radio" name="energy" id="energy-${key}" value="${key}" ${energy === key ? 'checked' : ''}>
               <span class="choice-icon">${icon(ENERGY_ICON[key], 60)}</span>
               <span class="choice-title">${e.label}</span>
-              <span class="choice-hint">${e.hint}</span>
             </label>`).join('')}
         </fieldset>
       </section>
@@ -56,32 +57,12 @@ export default {
         ${renderNext(next, energy)}
       </section>
 
-      <div class="grid-2">
-        <section class="card" aria-labelledby="dl-h">
-          ${heading('dl-h', 'calendar', 'Coming up')}
-          ${deadlines.length ? `<ul class="plain-list">${deadlines.map((t) => {
-            const soft = softDeadline(t.deadline, s.settings.bufferDays);
-            return `<li class="list-icon">${icon('calendar', 28)}<span><strong>${esc(t.title)}</strong><br><span class="muted">Aim for ${fmtDate(soft)} (${relDays(soft)})</span></span></li>`;
-          }).join('')}</ul>` : '<p class="muted">No deadlines. Nice and open.</p>'}
-          <p><a class="link-arrow" href="#/plan">Go to planner ${icon('later', 20)}</a></p>
-        </section>
-
-        <section class="card" aria-labelledby="cw-h">
-          ${heading('cw-h', 'cowork', 'Your co-work sessions')}
-          ${joined.length ? `<ul class="plain-list">${joined.slice(0, 2).map((x) => `
-            <li class="list-icon">${icon('clock', 28)}<span><strong>${esc(x.title)}</strong> with ${esc(x.host)}<br><span class="muted">${fmtDateTime(x.start)}</span></span></li>`).join('')}</ul>`
-            : '<p class="muted">You have not joined a session yet. Working next to someone can make starting easier.</p>'}
-          <p><a class="link-arrow" href="#/cowork">Find a session ${icon('later', 20)}</a></p>
-        </section>
-      </div>
-
-      <section class="card" aria-labelledby="sw-h">
-        ${heading('sw-h', 'swap', 'Skill swaps')}
-        ${incoming.length
-          ? `<p class="with-icon-inline">${icon('inbox', 28)} You have <strong>${incoming.length} ${incoming.length === 1 ? 'request' : 'requests'}</strong> waiting for your reply. There is no deadline to answer.</p>`
-          : '<p class="muted">No requests are waiting for you.</p>'}
-        <p class="with-icon-inline">${icon('coin', 28)} Time credits: <strong>${s.credits}</strong> <span class="muted">(1 credit = 1 hour of help)</span></p>
-        <p><a class="link-arrow" href="#/swap">Go to skill swap ${icon('later', 20)}</a></p>
+      <section class="card" aria-labelledby="up-h">
+        ${heading('up-h', 'calendar', 'Coming up')}
+        ${upcoming.length
+          ? `<ul class="plain-list">${upcoming.map((u) => `<li class="list-icon">${icon(u.icon, 28)}<span>${u.html}</span></li>`).join('')}</ul>`
+          : '<p class="muted">Nothing coming up.</p>'}
+        ${incoming ? `<p><a class="link-arrow" href="#/swap">${icon('inbox', 24)} ${incoming} skill swap ${incoming === 1 ? 'request is' : 'requests are'} waiting for you</a></p>` : ''}
       </section>
     `;
   },

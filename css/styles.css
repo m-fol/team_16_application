@@ -185,11 +185,24 @@ h1:focus, h2:focus, h3:focus, main:focus, [tabindex="-1"]:focus:not(:focus-visib
   max-width: 68rem; margin: 0 auto;
   padding: 0.75rem 1rem;
 }
+.header-top {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
 .brand {
   display: inline-flex; align-items: center; gap: 0.75rem;
   color: var(--text); text-decoration: none;
-  margin-bottom: 0.75rem;
 }
+.header-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.header-links a {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  min-height: 48px; padding: 0.4rem 0.9rem;
+  border: 2px solid var(--border-strong); border-radius: 999px;
+  color: var(--text); text-decoration: none;
+}
+.header-links a .icon { color: var(--area); }
+.header-links a:hover { background: var(--surface-2); }
+.header-links a[aria-current="page"] { background: var(--area-soft); border-color: var(--area); }
 .brand-mark { flex: none; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
 .brand-name { font-size: 1.75rem; font-weight: 700; letter-spacing: 0; }
@@ -201,7 +214,7 @@ h1:focus, h2:focus, h3:focus, main:focus, [tabindex="-1"]:focus:not(:focus-visib
 .nav-list {
   list-style: none; margin: 0; padding: 0;
   display: grid; gap: 0.5rem;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .nav-list a {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem;
@@ -538,7 +551,7 @@ dialog::backdrop { background: rgb(0 0 0 / 0.6); }
 
 /* ---------- Small screens ---------- */
 @media (max-width: 48rem) {
-  .nav-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .nav-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 40rem) {
   h1 { font-size: 1.75rem; }
@@ -552,3 +565,14 @@ dialog::backdrop { background: rgb(0 0 0 / 0.6); }
   .btn { width: 100%; }
   .inline-add .btn, .segmented .btn, .toast .btn { width: auto; }
 }
+
+/* ---------- Fold-away sections (Add a task, Host a session, More options) ---------- */
+.disclosure > summary { font-size: 1.2rem; min-height: 56px; }
+.disclosure:not([open]) { padding-top: 0.6rem; padding-bottom: 0.6rem; }
+.disclosure[open] > summary { margin-bottom: 1rem; }
+.match-badge {
+  display: inline-flex; align-items: center; gap: 0.4rem; align-self: flex-start;
+  margin: 0 0 0.75rem; padding: 0.2rem 0.75rem; border-radius: 999px;
+  background: var(--good-soft); color: var(--text); border: 2px solid var(--good); font-weight: 700;
+}
+.match-badge .icon { color: var(--good); }

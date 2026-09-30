@@ -32,56 +32,36 @@ export default {
     const scored = s.members
       .map((m) => ({ m, forMe: overlap(m.offers, me.needs), forThem: overlap(me.offers, m.needs) }))
       .sort((a, b) => (b.forMe.length + b.forThem.length) - (a.forMe.length + a.forThem.length));
-    const matches = scored.filter((x) => x.forMe.length);
-    const incoming = s.swaps.filter((w) => w.direction === 'in');
-    const outgoing = s.swaps.filter((w) => w.direction === 'out');
+    const active = s.swaps.filter((w) => w.status === 'pending' || w.status === 'accepted');
+    const past = s.swaps.filter((w) => !active.includes(w));
 
     return `
-      ${pageHead('swap', 'Skill swap', 'Trade what you are good at for what you find hard. Swap skill-for-skill, or use time credits: help someone for 1 hour, earn 1 credit.')}
-      <p class="with-icon-inline">${icon('coin', 28)} You have <strong>${s.credits} time ${s.credits === 1 ? 'credit' : 'credits'}</strong>.
-        You offer: ${me.offers.length ? esc(me.offers.join(', ')) : '<em>nothing yet</em>'}.
-        You need: ${me.needs.length ? esc(me.needs.join(', ')) : '<em>nothing yet</em>'}.
-        <a href="#/profile">Edit in my profile</a>.</p>
+      ${pageHead('swap', 'Skill swap', 'Trade what you are good at for what you find hard.')}
 
-      <section aria-labelledby="req-h">
-        ${heading('req-h', 'swap', 'My swaps')}
-        <div class="grid-2">
-          <div class="card">
-            ${heading('in-h', 'inbox', 'Requests to me', 3)}
-            ${incoming.length ? incoming.map(swapItem).join('') : '<p class="muted">None yet.</p>'}
-          </div>
-          <div class="card">
-            ${heading('out-h', 'send', 'Requests I sent', 3)}
-            ${outgoing.length ? outgoing.map(swapItem).join('') : '<p class="muted">None yet.</p>'}
-          </div>
-        </div>
-      </section>
-
-      <section aria-labelledby="match-h">
-        ${heading('match-h', 'sparkle', 'Good matches for you')}
-        <p class="muted">These people offer something you need.</p>
-        <div class="member-grid">
-          ${matches.length ? matches.map((x) => memberCard(x, 'match')).join('') : '<p class="muted">Add what you need in your profile to see matches.</p>'}
-        </div>
-      </section>
+      ${active.length ? `
+        <section class="card card-feature" aria-labelledby="req-h">
+          ${heading('req-h', 'inbox', 'Your swaps')}
+          ${active.map(swapItem).join('')}
+        </section>` : ''}
 
       <section aria-labelledby="all-h">
-        ${heading('all-h', 'cowork', 'Everyone')}
-        <div class="filters">
-          <div class="field">
-            <label for="search" class="with-icon-inline">${icon('search', 24)} Search by skill or name</label>
-            <input type="search" id="search" autocomplete="off">
-          </div>
-          <div class="field-check">
-            <input type="checkbox" id="only-written">
-            <label for="only-written">Only people who prefer written messages</label>
-          </div>
+        ${heading('all-h', 'cowork', 'People')}
+        <p class="muted">Best matches first. <a href="#/profile">Change what you offer and need</a>.</p>
+        <div class="field">
+          <label for="search" class="with-icon-inline">${icon('search', 24)} Search by skill or name</label>
+          <input type="search" id="search" autocomplete="off">
         </div>
-        <p id="result-count" aria-live="polite" class="muted">${s.members.length} people</p>
+        <p id="result-count" aria-live="polite" class="visually-hidden"></p>
         <div class="member-grid" id="all-members">
           ${scored.map((x) => memberCard(x, 'all')).join('')}
         </div>
       </section>
+
+      ${past.length ? `
+        <details class="card disclosure">
+          <summary>${icon('clock', 28)} Past swaps (${past.length})</summary>
+          ${past.map(swapItem).join('')}
+        </details>` : ''}
 
       <dialog id="request-dialog" aria-labelledby="dlg-h"></dialog>
     `;
@@ -93,19 +73,17 @@ export default {
 
     // Filtering hides cards in place instead of re-rendering, so typing is never interrupted.
     const search = root.querySelector('#search');
-    const onlyWritten = root.querySelector('#only-written');
     const filter = () => {
       const q = search.value.trim().toLowerCase();
       let shown = 0;
       root.querySelectorAll('#all-members .member').forEach((card) => {
-        const ok = (!q || card.dataset.search.includes(q)) && (!onlyWritten.checked || card.dataset.written === 'yes');
+        const ok = !q || card.dataset.search.includes(q);
         card.hidden = !ok;
         if (ok) shown += 1;
       });
       root.querySelector('#result-count').textContent = `${shown} ${shown === 1 ? 'person' : 'people'}`;
     };
     search.addEventListener('input', filter);
-    onlyWritten.addEventListener('change', filter);
 
     root.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
@@ -198,7 +176,8 @@ function memberCard({ m, forMe, forThem }, prefix) {
   return `
     <article class="card member" aria-labelledby="${hId}"
       data-search="${esc([m.name, m.business, ...m.offers, ...m.needs].join(' ').toLowerCase())}"
-      data-written="${m.comms.includes('written') ? 'yes' : 'no'}">
+>
+      ${forMe.length ? `<p class="match-badge">${icon('sparkle', 22)} Good match for you</p>` : ''}
       <h3 id="${hId}" class="member-name"><span class="avatar" aria-hidden="true">${esc(initials(m.name))}</span><span>${esc(m.name)} <span class="muted small">(${esc(m.pronouns)})</span></span></h3>
       <p class="muted">${esc(m.business)}</p>
       <dl class="skills">

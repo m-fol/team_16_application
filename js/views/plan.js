@@ -1,4 +1,4 @@
-import { store, currentEnergy, fitsEnergy, byUrgency } from '../store.js';
+import { store, byUrgency } from '../store.js';
 import { esc, uid, ENERGY, fmtDate, relDays, softDeadline, splitLines } from '../util.js';
 import { icon, pageHead, heading, ENERGY_ICON } from '../icons.js';
 
@@ -26,7 +26,8 @@ const TEMPLATES = {
   },
 };
 
-let filterToEnergy = false;
+// Keep the add form open after adding, so several tasks can be added in a row.
+let addOpen = false;
 
 export default {
   title: 'Planner',
@@ -34,67 +35,60 @@ export default {
   render() {
     const s = store.state;
     const buffer = s.settings.bufferDays;
-    const energy = currentEnergy(s);
     const isOpen = (t) => t.steps.some((st) => !st.done) || !t.steps.length;
-    let tasks = [...s.tasks].sort(byUrgency(buffer));
-    if (filterToEnergy && energy) tasks = tasks.filter((t) => fitsEnergy(t, energy));
+    const tasks = [...s.tasks].sort(byUrgency(buffer));
     const open = tasks.filter(isOpen);
     const finished = tasks.filter((t) => !isOpen(t));
 
     return `
-      ${pageHead('plan', 'Planner', `Big tasks, split into small steps. We suggest aiming <strong>${buffer} ${buffer === 1 ? 'day' : 'days'}</strong> before each real deadline, so there is room for bad days. <a href="#/settings">Change this</a>.`)}
+      ${pageHead('plan', 'Planner', 'Big tasks, split into small steps.')}
 
-      <section class="card" aria-labelledby="add-h">
-        ${heading('add-h', 'plus', 'Add a task')}
+      <section aria-labelledby="list-h">
+        ${heading('list-h', 'list', 'Your tasks')}
+        ${open.length ? open.map((t) => taskCard(t, buffer)).join('') : '<p class="muted">No tasks. Add one below.</p>'}
+      </section>
+
+      <details class="card disclosure" id="add-details" ${addOpen || !s.tasks.length ? 'open' : ''}>
+        <summary id="add-h">${icon('plus', 28)} Add a task</summary>
         <form id="add-task" novalidate>
           <div class="field">
-            <label for="tpl">Start from a template (optional)</label>
-            <select id="tpl">
-              <option value="">No template</option>
-              ${Object.entries(TEMPLATES).map(([k, t]) => `<option value="${k}">${esc(t.title)}</option>`).join('')}
-            </select>
-            <p class="hint" id="tpl-hint">Choosing a template fills in the steps below. You can edit them.</p>
-          </div>
-          <div class="field">
-            <label for="t-title">What is the task? <span class="req">(required)</span></label>
+            <label for="t-title">What is the task?</label>
             <input id="t-title" name="title" required autocomplete="off" aria-describedby="t-title-error">
             <p class="error" id="t-title-error" hidden>Please write a name for the task.</p>
           </div>
+          <div class="field">
+            <label for="t-steps">Steps, one per line (optional)</label>
+            <textarea id="t-steps" name="steps" rows="4" aria-describedby="t-steps-hint"></textarea>
+            <p class="hint" id="t-steps-hint">Make the first step very small, like “open the file”.</p>
+          </div>
+          <div class="field">
+            <label for="tpl">Or use a ready-made list</label>
+            <select id="tpl">
+              <option value="">Choose…</option>
+              ${Object.entries(TEMPLATES).map(([k, t]) => `<option value="${k}">${esc(t.title)}</option>`).join('')}
+            </select>
+          </div>
           <div class="field-row">
             <div class="field">
-              <label for="t-deadline">Real deadline (optional)</label>
+              <label for="t-deadline">Deadline (optional)</label>
               <input type="date" id="t-deadline" name="deadline">
             </div>
             <div class="field">
-              <label for="t-energy">Energy this needs</label>
+              <label for="t-energy">Energy it needs</label>
               <select id="t-energy" name="energy">
                 ${Object.entries(ENERGY).map(([k, e]) => `<option value="${k}" ${k === 'some' ? 'selected' : ''}>${e.label}</option>`).join('')}
               </select>
             </div>
           </div>
-          <div class="field">
-            <label for="t-steps">Steps, one per line</label>
-            <textarea id="t-steps" name="steps" rows="5" aria-describedby="t-steps-hint"></textarea>
-            <p class="hint" id="t-steps-hint">Tip: make the first step very small, like “open the file”.</p>
-          </div>
           <button type="submit" class="btn btn-primary">${icon('plus')}Add task</button>
         </form>
-      </section>
+      </details>
 
-      <section aria-labelledby="list-h">
-        ${heading('list-h', 'list', 'Your tasks')}
-        ${energy ? `
-          <div class="field-check">
-            <input type="checkbox" id="filter-energy" ${filterToEnergy ? 'checked' : ''}>
-            <label for="filter-energy">Only show tasks that fit my energy today (${ENERGY[energy].label})</label>
-          </div>` : '<p class="muted">Tell us your energy on the <a href="#/today">Today page</a> to filter tasks by energy.</p>'}
-        ${open.length ? open.map((t) => taskCard(t, buffer)).join('') : '<p class="muted">No open tasks here.</p>'}
-        ${finished.length ? `
-          <details class="card">
-            <summary>${icon('check-circle', 28)} Finished tasks (${finished.length})</summary>
-            ${finished.map((t) => taskCard(t, buffer)).join('')}
-          </details>` : ''}
-      </section>
+      ${finished.length ? `
+        <details class="card disclosure">
+          <summary>${icon('check-circle', 28)} Finished (${finished.length})</summary>
+          ${finished.map((t) => taskCard(t, buffer)).join('')}
+        </details>` : ''}
     `;
   },
 
@@ -124,16 +118,12 @@ export default {
       store.update((s) => {
         s.tasks.push({ id: uid(), title, deadline: form.deadline.value || null, energy: form.energy.value, steps, created: Date.now() });
       });
-      ctx.rerender('#list-h');
-      ctx.announce(`Task added: ${title}.`);
+      addOpen = true;
+      ctx.rerender('#t-title');
+      ctx.announce(`Task added: ${title}. You can add another.`);
     });
 
     root.addEventListener('change', (e) => {
-      if (e.target.id === 'filter-energy') {
-        filterToEnergy = e.target.checked;
-        ctx.rerender('#filter-energy');
-        return;
-      }
       const { taskId, stepId } = e.target.dataset;
       if (!stepId) return;
       store.update((s) => { findStep(s, taskId, stepId).done = e.target.checked; });
