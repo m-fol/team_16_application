@@ -1,5 +1,5 @@
 import { store, byUrgency } from '../store.js';
-import { esc, uid, ENERGY, fmtDate, relDays, softDeadline, splitLines } from '../util.js';
+import { esc, uid, ENERGY, relDays, softDeadline, splitLines } from '../util.js';
 import { icon, pageHead, heading, ENERGY_ICON } from '../icons.js';
 
 // Ready-made breakdowns for common business tasks that are hard to start.
@@ -41,28 +41,27 @@ export default {
     const finished = tasks.filter((t) => !isOpen(t));
 
     return `
-      ${pageHead('plan', 'Planner', 'Big tasks, split into small steps.')}
+      ${pageHead('plan', 'Planner')}
 
       <section aria-labelledby="list-h">
         ${heading('list-h', 'list', 'Your tasks')}
-        ${open.length ? open.map((t) => taskCard(t, buffer)).join('') : '<p class="muted">No tasks. Add one below.</p>'}
+        ${open.length ? open.map((t) => taskCard(t, buffer)).join('') : '<p class="muted">No tasks yet.</p>'}
       </section>
 
       <details class="card disclosure" id="add-details" ${addOpen || !s.tasks.length ? 'open' : ''}>
         <summary id="add-h">${icon('plus', 28)} Add a task</summary>
         <form id="add-task" novalidate>
           <div class="field">
-            <label for="t-title">What is the task?</label>
+            <label for="t-title">Task</label>
             <input id="t-title" name="title" required autocomplete="off" aria-describedby="t-title-error">
-            <p class="error" id="t-title-error" hidden>Please write a name for the task.</p>
+            <p class="error" id="t-title-error" hidden>Add a name.</p>
           </div>
           <div class="field">
-            <label for="t-steps">Steps, one per line (optional)</label>
-            <textarea id="t-steps" name="steps" rows="4" aria-describedby="t-steps-hint"></textarea>
-            <p class="hint" id="t-steps-hint">Make the first step very small, like “open the file”.</p>
+            <label for="t-steps">Steps (one per line)</label>
+            <textarea id="t-steps" name="steps" rows="4"></textarea>
           </div>
           <div class="field">
-            <label for="tpl">Or use a ready-made list</label>
+            <label for="tpl">Or pick a list</label>
             <select id="tpl">
               <option value="">Choose…</option>
               ${Object.entries(TEMPLATES).map(([k, t]) => `<option value="${k}">${esc(t.title)}</option>`).join('')}
@@ -70,11 +69,11 @@ export default {
           </div>
           <div class="field-row">
             <div class="field">
-              <label for="t-deadline">Deadline (optional)</label>
+              <label for="t-deadline">Deadline</label>
               <input type="date" id="t-deadline" name="deadline">
             </div>
             <div class="field">
-              <label for="t-energy">Energy it needs</label>
+              <label for="t-energy">Energy</label>
               <select id="t-energy" name="energy">
                 ${Object.entries(ENERGY).map(([k, e]) => `<option value="${k}" ${k === 'some' ? 'selected' : ''}>${e.label}</option>`).join('')}
               </select>
@@ -86,7 +85,7 @@ export default {
 
       ${finished.length ? `
         <details class="card disclosure">
-          <summary>${icon('check-circle', 28)} Finished (${finished.length})</summary>
+          <summary>${icon('check-circle', 28)} Done (${finished.length})</summary>
           ${finished.map((t) => taskCard(t, buffer)).join('')}
         </details>` : ''}
     `;
@@ -101,7 +100,7 @@ export default {
       form.title.value = t.title;
       form.energy.value = t.energy;
       form.steps.value = t.steps.join('\n');
-      ctx.announce(`Template added: ${t.steps.length} steps.`);
+      ctx.announce(`${t.steps.length} steps added.`);
     });
 
     form.addEventListener('submit', (e) => {
@@ -120,7 +119,7 @@ export default {
       });
       addOpen = true;
       ctx.rerender('#t-title');
-      ctx.announce(`Task added: ${title}. You can add another.`);
+      ctx.announce(`Added: ${title}.`);
     });
 
     root.addEventListener('change', (e) => {
@@ -130,7 +129,7 @@ export default {
       const task = store.state.tasks.find((t) => t.id === taskId);
       const left = task.steps.filter((st) => !st.done).length;
       ctx.rerender(left ? null : '#list-h');
-      ctx.announce(left ? `${left} ${left === 1 ? 'step' : 'steps'} left in ${task.title}.` : `All steps done in ${task.title}. It moved to finished tasks.`);
+      ctx.announce(left ? `${left} ${left === 1 ? 'step' : 'steps'} left in ${task.title}.` : `${task.title} is done.`);
     });
 
     root.addEventListener('submit', (e) => {
@@ -142,7 +141,7 @@ export default {
       const { taskId } = e.target.dataset;
       store.update((s) => { s.tasks.find((t) => t.id === taskId).steps.push({ id: uid(), text, done: false }); });
       ctx.rerender(`#${input.id}`);
-      ctx.announce(`Step added: ${text}.`);
+      ctx.announce(`Added: ${text}.`);
     });
 
     root.addEventListener('click', (e) => {
@@ -157,7 +156,7 @@ export default {
           [removed] = task.steps.splice(index, 1);
         });
         ctx.rerender(`#ns-${taskId}`);
-        ctx.toast(`Step removed: ${removed.text}`, {
+        ctx.toast(`Removed: ${removed.text}`, {
           undo: () => {
             store.update((s) => { s.tasks.find((t) => t.id === taskId).steps.splice(index, 0, removed); });
             ctx.rerender(`#st-${stepId}`);
@@ -171,7 +170,7 @@ export default {
           [removed] = s.tasks.splice(index, 1);
         });
         ctx.rerender('#list-h');
-        ctx.toast(`Task deleted: ${removed.title}`, {
+        ctx.toast(`Deleted: ${removed.title}`, {
           undo: () => {
             store.update((s) => { s.tasks.splice(index, 0, removed); });
             ctx.rerender(`#task-${taskId}-h`);
@@ -194,15 +193,15 @@ function taskCard(t, buffer) {
     <article class="card task" aria-labelledby="task-${t.id}-h">
       <div class="task-head">
         <h3 id="task-${t.id}-h" tabindex="-1">${esc(t.title)}</h3>
-        <span class="tag tag-${t.energy}">${icon(ENERGY_ICON[t.energy], 26)}Energy: ${ENERGY[t.energy].label}</span>
+        <span class="tag tag-${t.energy}">${icon(ENERGY_ICON[t.energy], 26)}${ENERGY[t.energy].label}<span class="visually-hidden"> energy</span></span>
       </div>
       ${t.deadline
-        ? `<p class="list-icon">${icon('calendar', 28)}<span><strong>Aim for ${fmtDate(soft)}</strong> (${relDays(soft)}).<br><span class="muted">Real deadline: ${fmtDate(t.deadline)}.</span></span></p>`
-        : '<p class="muted">No deadline.</p>'}
+        ? `<p class="list-icon">${icon('calendar', 28)}<span><strong>Due ${relDays(soft)}</strong></span></p>`
+        : ''}
       ${total ? `
         <div class="progress-row">
           <progress max="${total}" value="${done}" aria-labelledby="prog-${t.id}"></progress>
-          <span id="prog-${t.id}">${done} of ${total} steps done</span>
+          <span id="prog-${t.id}">${done}/${total}</span>
         </div>` : ''}
       <ul class="steps">
         ${t.steps.map((st) => `
@@ -216,12 +215,12 @@ function taskCard(t, buffer) {
       </ul>
       <form class="inline-add" data-task-id="${t.id}">
         <label for="ns-${t.id}" class="visually-hidden">New step for ${esc(t.title)}</label>
-        <input id="ns-${t.id}" autocomplete="off" placeholder="Add a step">
-        <button type="submit" class="btn">${icon('plus')}Add step</button>
+        <input id="ns-${t.id}" autocomplete="off">
+        <button type="submit" class="btn">${icon('plus')}Add step<span class="visually-hidden"> to ${esc(t.title)}</span></button>
       </form>
       <div class="actions">
-        ${done < total ? `<a class="btn btn-primary" href="#/focus/${t.id}">${icon('focus')}Focus on this</a>` : ''}
-        <button type="button" class="btn btn-quiet" data-action="delete-task" data-task-id="${t.id}">${icon('trash')}Delete task</button>
+        ${done < total ? `<a class="btn btn-primary" href="#/focus/${t.id}">${icon('focus')}Focus</a>` : ''}
+        <button type="button" class="btn btn-quiet" data-action="delete-task" data-task-id="${t.id}">${icon('trash')}Delete</button>
       </div>
     </article>`;
 }

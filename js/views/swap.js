@@ -4,7 +4,7 @@ import { esc, uid, COMMS, hoursLabel } from '../util.js';
 import { icon, pageHead, heading } from '../icons.js';
 
 const STATUS = {
-  pending: 'Waiting for a reply',
+  pending: 'Waiting',
   accepted: 'Agreed',
   declined: 'Declined',
   done: 'Completed',
@@ -36,7 +36,7 @@ export default {
     const past = s.swaps.filter((w) => !active.includes(w));
 
     return `
-      ${pageHead('swap', 'Skill swap', 'Trade what you are good at for what you find hard.')}
+      ${pageHead('swap', 'Skill swap')}
 
       ${active.length ? `
         <section class="card card-feature" aria-labelledby="req-h">
@@ -46,9 +46,8 @@ export default {
 
       <section aria-labelledby="all-h">
         ${heading('all-h', 'cowork', 'People')}
-        <p class="muted">Best matches first. <a href="#/profile">Change what you offer and need</a>.</p>
         <div class="field">
-          <label for="search" class="with-icon-inline">${icon('search', 24)} Search by skill or name</label>
+          <label for="search" class="with-icon-inline">${icon('search', 24)} Search</label>
           <input type="search" id="search" autocomplete="off">
         </div>
         <p id="result-count" aria-live="polite" class="visually-hidden"></p>
@@ -101,7 +100,7 @@ export default {
       }
       if (action === 'fill-message') {
         fillMessage(dialog);
-        ctx.announce('A message was written for you. You can edit it.');
+        ctx.announce('Message written. You can edit it.');
         return;
       }
       const swap = store.state.swaps.find((w) => w.id === id);
@@ -116,7 +115,7 @@ export default {
         const reason = root.querySelector(`#reason-${id}`).value;
         store.update(() => { swap.status = 'declined'; swap.reply = reason; });
         ctx.rerender(`#swap-${id}`);
-        ctx.announce(`Declined. ${name} will see: “${reason}”`);
+        ctx.announce('Declined.');
       }
       if (action === 'withdraw') {
         store.update(() => { swap.status = 'withdrawn'; });
@@ -131,7 +130,7 @@ export default {
         });
         ctx.rerender(`#swap-${id}`);
         const c = store.state.credits;
-        ctx.announce(`Marked as completed. You now have ${c} time ${c === 1 ? 'credit' : 'credits'}.`);
+        ctx.announce(`Done. ${c} time ${c === 1 ? 'credit' : 'credits'}.`);
       }
     });
 
@@ -162,7 +161,7 @@ export default {
       });
       dialog.close();
       ctx.rerender('#req-h');
-      ctx.announce(`Request sent to ${findMember(memberId).name}. People reply at their own pace. You do not need to follow up.`);
+      ctx.announce(`Sent to ${findMember(memberId).name}.`);
     });
   },
 };
@@ -171,36 +170,34 @@ function commsList(comms) {
   return comms.length ? `<ul class="comms">${comms.map((c) => `<li>${esc(COMMS[c])}</li>`).join('')}</ul>` : '';
 }
 
-function memberCard({ m, forMe, forThem }, prefix) {
+function memberCard({ m, forMe }, prefix) {
   const hId = `${prefix}-${m.id}-h`;
   return `
     <article class="card member" aria-labelledby="${hId}"
       data-search="${esc([m.name, m.business, ...m.offers, ...m.needs].join(' ').toLowerCase())}"
 >
-      ${forMe.length ? `<p class="match-badge">${icon('sparkle', 22)} Good match for you</p>` : ''}
+      ${forMe.length ? `<p class="match-badge">${icon('sparkle', 22)} Good match</p>` : ''}
       <h3 id="${hId}" class="member-name"><span class="avatar" aria-hidden="true">${esc(initials(m.name))}</span><span>${esc(m.name)} <span class="muted small">(${esc(m.pronouns)})</span></span></h3>
       <p class="muted">${esc(m.business)}</p>
       <dl class="skills">
         <dt>Offers</dt><dd>${m.offers.map((o) => `<span class="chip ${forMe.includes(o) ? 'chip-match' : ''}">${esc(o)}${forMe.includes(o) ? '<span class="visually-hidden"> (you need this)</span>' : ''}</span>`).join(' ')}</dd>
         <dt>Needs</dt><dd>${m.needs.map((n) => `<span class="chip">${esc(n)}</span>`).join(' ')}</dd>
       </dl>
-      ${forThem.length ? `<p class="match-note">${icon('check-circle', 26)} You could help with: ${esc(forThem.join(', '))}</p>` : ''}
       <details>
-        <summary>${icon('message', 26)} How ${esc(m.name.split(' ')[0])} likes to work</summary>
+        <summary>${icon('message', 26)} How they work</summary>
         ${commsList(m.comms)}
         <p>${esc(m.about)}</p>
-        <p><strong>Work:</strong> ${esc(m.portfolio)}</p>
       </details>
-      <button type="button" class="btn btn-primary" data-action="request" data-id="${m.id}">${icon('swap')}Request a swap<span class="visually-hidden"> with ${esc(m.name)}</span></button>
+      <button type="button" class="btn btn-primary" data-action="request" data-id="${m.id}">${icon('swap')}Ask to swap<span class="visually-hidden"> with ${esc(m.name)}</span></button>
     </article>`;
 }
 
 function swapItem(w) {
   const m = findMember(w.memberId);
-  const give = (x) => (x === 'credit' ? `${hoursLabel(w.hours)} of time credit` : esc(x));
+  const give = (x) => (x === 'credit' ? 'time credit' : esc(x));
   const summary = w.direction === 'in'
-    ? `${esc(m.name)} wants <strong>${esc(w.theyWant)}</strong> and offers <strong>${give(w.theyGive)}</strong>.`
-    : `You asked ${esc(m.name)} for <strong>${esc(w.theyGive)}</strong> and offered <strong>${give(w.iGive)}</strong>.`;
+    ? `<strong>${esc(m.name)}</strong> wants ${esc(w.theyWant)}, gives ${give(w.theyGive)}`
+    : `You asked <strong>${esc(m.name)}</strong> for ${esc(w.theyGive)}, give ${give(w.iGive)}`;
   let actions = '';
   if (w.direction === 'in' && w.status === 'pending') {
     actions = `
@@ -210,21 +207,20 @@ function swapItem(w) {
       <details class="decline">
         <summary>Decline</summary>
         <div class="field">
-          <label for="reason-${w.id}">Choose a polite reply</label>
+          <label for="reason-${w.id}">Reply</label>
           <select id="reason-${w.id}">${DECLINE_REASONS.map((r) => `<option>${esc(r)}</option>`).join('')}</select>
         </div>
-        <button type="button" class="btn" data-action="decline" data-id="${w.id}">Send decline</button>
+        <button type="button" class="btn" data-action="decline" data-id="${w.id}">Send</button>
       </details>`;
   } else if (w.direction === 'out' && w.status === 'pending') {
-    actions = `<div class="actions"><button type="button" class="btn btn-quiet" id="swap-${w.id}" data-action="withdraw" data-id="${w.id}">${icon('close')}Withdraw request</button></div>`;
+    actions = `<div class="actions"><button type="button" class="btn btn-quiet" id="swap-${w.id}" data-action="withdraw" data-id="${w.id}">${icon('close')}Withdraw</button></div>`;
   } else if (w.status === 'accepted') {
-    actions = `<div class="actions"><button type="button" class="btn" id="swap-${w.id}" data-action="complete" data-id="${w.id}">${icon('check-circle')}Mark as completed</button></div>`;
+    actions = `<div class="actions"><button type="button" class="btn" id="swap-${w.id}" data-action="complete" data-id="${w.id}">${icon('check-circle')}Mark done</button></div>`;
   }
   return `
     <div class="swap-item" ${actions ? '' : `id="swap-${w.id}" tabindex="-1"`}>
       <p><span class="status status-${w.status}">${icon(STATUS_ICON[w.status], 22)}${STATUS[w.status]}</span> · ${hoursLabel(w.hours)}</p>
       <p>${summary}</p>
-      <blockquote>${esc(w.message)}</blockquote>
       ${w.reply ? `<p class="muted">Reply: ${esc(w.reply)}</p>` : ''}
       ${actions}
     </div>`;
@@ -235,38 +231,37 @@ function requestForm(m) {
   const first = m.name.split(' ')[0];
   return `
     <form method="dialog" data-member="${m.id}" novalidate>
-      <h2 id="dlg-h" class="with-icon">${icon('swap', 30)}<span>Request a swap with ${esc(m.name)}</span></h2>
+      <h2 id="dlg-h" class="with-icon">${icon('swap', 30)}<span>Swap with ${esc(m.name)}</span></h2>
       <div class="card card-note">
-        <p class="with-icon-inline">${icon('info', 26)} <strong>Before you write:</strong></p>
-        ${commsList(m.comms) || '<p>No special preferences.</p>'}
+        <p class="with-icon-inline">${icon('info', 26)} <strong>Good to know</strong></p>
+        ${commsList(m.comms)}
       </div>
       <div class="field">
-        <label for="theyGive">What would you like from ${esc(first)}?</label>
+        <label for="theyGive">You get</label>
         <select id="theyGive" name="theyGive">${m.offers.map((o) => `<option>${esc(o)}</option>`).join('')}</select>
       </div>
       <div class="field">
-        <label for="iGive">What can you give in return?</label>
+        <label for="iGive">You give</label>
         <select id="iGive" name="iGive" aria-describedby="credit-error">
           ${me.offers.map((o) => `<option ${m.needs.includes(o) ? 'selected' : ''}>${esc(o)}</option>`).join('')}
-          <option value="credit">Time credits (you have ${store.state.credits})</option>
+          <option value="credit">Time credit (${store.state.credits} left)</option>
         </select>
-        <p class="error" id="credit-error" hidden>You do not have enough time credits for this. Choose a skill or a shorter time.</p>
+        <p class="error" id="credit-error" hidden>Not enough credits.</p>
       </div>
       <fieldset class="field">
-        <legend>About how long?</legend>
+        <legend>Time</legend>
         <div class="radio-row">
           ${[0.5, 1, 2].map((h) => `<label><input type="radio" name="hours" value="${h}" ${h === 1 ? 'checked' : ''}> ${hoursLabel(h)}</label>`).join('')}
         </div>
       </fieldset>
       <div class="field">
         <label for="message">Message</label>
-        <textarea id="message" name="message" rows="6" aria-describedby="msg-hint msg-error"></textarea>
-        <p class="hint" id="msg-hint">Not sure what to write? Use the button below, then change anything you like.</p>
-        <p class="error" id="msg-error" hidden>Please write a short message.</p>
-        <button type="button" class="btn" data-action="fill-message" data-name="${esc(first)}" data-prefs="${esc(me.comms.map((c) => COMMS[c].toLowerCase()).join('; '))}">${icon('sparkle')}Write a message for me</button>
+        <textarea id="message" name="message" rows="6" aria-describedby="msg-error"></textarea>
+        <p class="error" id="msg-error" hidden>Write a short message.</p>
+        <button type="button" class="btn" data-action="fill-message" data-name="${esc(first)}" data-prefs="${esc(me.comms.map((c) => COMMS[c].toLowerCase()).join('; '))}">${icon('sparkle')}Write it for me</button>
       </div>
       <div class="actions">
-        <button type="submit" class="btn btn-primary">${icon('send')}Send request</button>
+        <button type="submit" class="btn btn-primary">${icon('send')}Send</button>
         <button type="button" class="btn btn-quiet" data-action="close-dialog">Cancel</button>
       </div>
     </form>`;
@@ -278,6 +273,6 @@ function fillMessage(dialog) {
   const hours = hoursLabel(Number(f.hours.value));
   const give = f.iGive.value === 'credit' ? `${hours} of time credit` : f.iGive.value.toLowerCase();
   const prefs = btn.dataset.prefs ? `\n\nAbout me: ${btn.dataset.prefs}.` : '';
-  f.message.value = `Hi ${btn.dataset.name},\n\nI would like help with ${f.theyGive.value.toLowerCase()}. In return, I can offer ${give}. I think it would take about ${hours}.\n\nThere is no rush. Please reply when it suits you.${prefs}`;
+  f.message.value = `Hi ${btn.dataset.name},\n\nCould you help me with ${f.theyGive.value.toLowerCase()}? I can offer ${give}. About ${hours}.\n\nNo rush.${prefs}`;
   f.message.focus();
 }

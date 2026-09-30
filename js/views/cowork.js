@@ -14,11 +14,11 @@ export default {
       .sort((a, b) => a.start.localeCompare(b.start));
 
     return `
-      ${pageHead('cowork', 'Co-work sessions', 'Work next to other people online. It makes starting easier. No need to talk or use your camera.')}
+      ${pageHead('cowork', 'Co-work')}
 
       <section aria-labelledby="list-h">
-        ${heading('list-h', 'calendar', 'Upcoming sessions')}
-        ${sessions.length ? sessions.map(sessionCard).join('') : '<p class="muted">No sessions right now. You could host one below.</p>'}
+        ${heading('list-h', 'calendar', 'Sessions')}
+        ${sessions.length ? sessions.map(sessionCard).join('') : '<p class="muted">No sessions yet.</p>'}
       </section>
 
       <details class="card disclosure">
@@ -27,7 +27,7 @@ export default {
           <div class="field">
             <label for="h-title">Name</label>
             <input id="h-title" name="title" autocomplete="off" aria-describedby="h-title-error">
-            <p class="error" id="h-title-error" hidden>Please give the session a name.</p>
+            <p class="error" id="h-title-error" hidden>Add a name.</p>
           </div>
           <div class="field-row">
             <div class="field"><label for="h-date">Date</label><input type="date" id="h-date" name="date" value="${todayISO()}" min="${todayISO()}"></div>
@@ -40,7 +40,7 @@ export default {
             </div>
           </div>
           <fieldset class="field">
-            <legend>Format (choose any)</legend>
+            <legend>Format</legend>
             <div class="check-grid">
               ${Object.entries(FORMATS).map(([k, label]) => `
                 <div class="field-check">
@@ -49,10 +49,6 @@ export default {
                 </div>`).join('')}
             </div>
           </fieldset>
-          <div class="field">
-            <label for="h-desc">What will happen?</label>
-            <textarea id="h-desc" name="description" rows="3">Say hello in the chat, then we work quietly. Leave whenever you want.</textarea>
-          </div>
           <button type="submit" class="btn btn-primary">${icon('plus')}Create session</button>
         </form>
       </details>
@@ -68,8 +64,8 @@ export default {
         store.update(() => { session.joined = !session.joined; });
         ctx.rerender(`#join-${session.id}`);
         ctx.announce(session.joined
-          ? `You joined ${session.title}. It is on your Today page.`
-          : `You left ${session.title}. No one is notified.`);
+          ? `Joined ${session.title}.`
+          : `Left ${session.title}.`);
       }
       if (btn.dataset.action === 'ics') {
         download(`${session.title.replace(/[^\w]+/g, '-')}.ics`, ics(session), 'text/calendar');
@@ -94,11 +90,11 @@ export default {
           id, title, host: s.profile.name.trim() || 'You', start: start.toISOString(),
           minutes: Number(form.minutes.value),
           formats: [...form.querySelectorAll('[name="formats"]:checked')].map((x) => x.value),
-          description: form.description.value.trim(), joined: true,
+          description: '', joined: true,
         });
       });
       ctx.rerender(`#join-${id}`);
-      ctx.announce(`Session created: ${title}. You are hosting it.`);
+      ctx.announce(`Created: ${title}.`);
     });
   },
 };
@@ -108,15 +104,14 @@ function sessionCard(x) {
   return `
     <article class="card session ${x.joined ? 'is-joined' : ''}" aria-labelledby="s-${x.id}-h">
       <h3 id="s-${x.id}-h">${esc(x.title)}</h3>
-      <p class="list-icon">${icon('clock', 28)}<span><strong>${fmtDateTime(x.start)}</strong> · ${x.minutes} minutes · hosted by ${esc(x.host)}
-        ${startsSoon ? '<span class="tag tag-soon">Starting soon</span>' : ''}</span></p>
+      <p class="list-icon">${icon('clock', 28)}<span><strong>${fmtDateTime(x.start)}</strong> · ${x.minutes} min · ${esc(x.host)}
+        ${startsSoon ? '<span class="tag tag-soon">Soon</span>' : ''}</span></p>
       <ul class="tags" aria-label="Format">${x.formats.map((f) => `<li class="tag">${icon(FORMAT_ICON[f], 22)}${esc(FORMATS[f])}</li>`).join('')}</ul>
-      <p>${esc(x.description)}</p>
       <div class="actions">
         <button type="button" class="btn ${x.joined ? '' : 'btn-primary'}" id="join-${x.id}" data-action="join" data-id="${x.id}" aria-pressed="${x.joined}">
           ${x.joined ? `${icon('check')}Joined` : `${icon('plus')}Join`}<span class="visually-hidden"> ${esc(x.title)}</span>
         </button>
-        <button type="button" class="btn btn-quiet" data-action="ics" data-id="${x.id}">${icon('calendar')}Add to my calendar<span class="visually-hidden"> (${esc(x.title)})</span></button>
+        <button type="button" class="btn btn-quiet" data-action="ics" data-id="${x.id}">${icon('calendar')}Calendar<span class="visually-hidden"> (${esc(x.title)})</span></button>
       </div>
     </article>`;
 }

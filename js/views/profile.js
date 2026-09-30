@@ -9,30 +9,30 @@ export default {
   render() {
     const p = store.state.profile;
     return `
-      ${pageHead('profile', 'My profile', 'Show your work, not your interview skills.')}
+      ${pageHead('profile', 'My profile')}
 
       <form id="profile-form" class="card">
         ${heading('about-h', 'profile', 'About me')}
         <div class="field-row">
           <div class="field"><label for="p-name">Name</label><input id="p-name" name="name" value="${esc(p.name)}" autocomplete="name"></div>
-          <div class="field"><label for="p-pronouns">Pronouns (optional)</label><input id="p-pronouns" name="pronouns" value="${esc(p.pronouns)}"></div>
+          <div class="field"><label for="p-pronouns">Pronouns</label><input id="p-pronouns" name="pronouns" value="${esc(p.pronouns)}"></div>
         </div>
-        <div class="field"><label for="p-business">What does your business do?</label><input id="p-business" name="business" value="${esc(p.business)}"></div>
+        <div class="field"><label for="p-business">My business</label><input id="p-business" name="business" value="${esc(p.business)}"></div>
 
         ${heading('skills-h', 'swap', 'Skills')}
         <div class="field">
-          <label for="p-offers">Skills I can offer</label>
+          <label for="p-offers">I offer</label>
           <input id="p-offers" name="offers" value="${esc(p.offers.join(', '))}" aria-describedby="comma-hint">
         </div>
         <div class="field">
-          <label for="p-needs">Help I need</label>
+          <label for="p-needs">I need</label>
           <input id="p-needs" name="needs" value="${esc(p.needs.join(', '))}" aria-describedby="comma-hint">
-          <p class="hint" id="comma-hint">Separate skills with commas. Example: Website, Bookkeeping</p>
+          <p class="hint" id="comma-hint">Separate with commas.</p>
         </div>
 
         ${heading('work-h', 'message', 'How I like to work')}
         <fieldset class="field">
-          <legend>Communication preferences</legend>
+          <legend class="visually-hidden">Communication preferences</legend>
           <div class="check-grid">
             ${Object.entries(COMMS).map(([k, label]) => `
               <div class="field-check">
@@ -42,16 +42,15 @@ export default {
           </div>
         </fieldset>
         <div class="field">
-          <label for="p-about">Anything else people should know? (optional)</label>
-          <textarea id="p-about" name="about" rows="3" aria-describedby="about-hint">${esc(p.about)}</textarea>
-          <p class="hint" id="about-hint">Example: “I think best in writing. Please send questions before a call.”</p>
+          <label for="p-about">Anything else</label>
+          <textarea id="p-about" name="about" rows="3">${esc(p.about)}</textarea>
         </div>
         <div class="field">
-          <label for="p-portfolio">My work (links, projects, results)</label>
+          <label for="p-portfolio">My work (links)</label>
           <textarea id="p-portfolio" name="portfolio" rows="3">${esc(p.portfolio)}</textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary" id="save-profile">${icon('save')}Save profile</button>
+        <button type="submit" class="btn btn-primary" id="save-profile">${icon('save')}Save</button>
       </form>
 
     `;
@@ -74,7 +73,7 @@ export default {
         });
       });
       ctx.rerender('#save-profile');
-      ctx.announce('Profile saved.');
+      ctx.announce('Saved.');
     });
   },
 };

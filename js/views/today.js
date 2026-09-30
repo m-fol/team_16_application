@@ -18,7 +18,7 @@ export default {
         .filter((t) => t.deadline && t.steps.some((st) => !st.done))
         .map((t) => {
           const soft = softDeadline(t.deadline, s.settings.bufferDays);
-          return { at: `${soft}T23:59`, icon: 'plan', html: `<strong>${esc(t.title)}</strong><br><span class="muted">Aim to finish ${relDays(soft)}</span>` };
+          return { at: `${soft}T23:59`, icon: 'plan', html: `<strong>${esc(t.title)}</strong><br><span class="muted">Due ${relDays(soft)}</span>` };
         }),
       ...s.sessions
         .filter((x) => x.joined && new Date(x.start).getTime() + x.minutes * 6e4 > now)
@@ -27,14 +27,13 @@ export default {
     const incoming = s.swaps.filter((w) => w.direction === 'in' && w.status === 'pending').length;
 
     return `
-      ${pageHead('today', name ? `Hello, ${esc(name)}` : 'Hello', 'One small step is enough.')}
+      ${pageHead('today', name ? `Hello, ${esc(name)}` : 'Hello')}
 
       ${s.settings.onboarded ? '' : `
         <section class="card card-note" aria-labelledby="welcome-h">
-          ${heading('welcome-h', 'sparkle', 'Welcome to ThriveTogether')}
-          <p>Swap skills, plan in small steps, and work alongside others.</p>
+          ${heading('welcome-h', 'sparkle', 'Welcome!')}
           <div class="actions">
-            <a class="btn btn-primary" href="#/settings">${icon('settings')}Make it comfortable for me</a>
+            <a class="btn btn-primary" href="#/settings">${icon('settings')}Set up colours and text</a>
             <button type="button" class="btn btn-quiet" data-action="dismiss-welcome">Hide this</button>
           </div>
         </section>`}
@@ -53,16 +52,16 @@ export default {
       </section>
 
       <section class="card card-feature" aria-labelledby="next-h">
-        ${heading('next-h', 'focus', 'Your next small step')}
-        ${renderNext(next, energy)}
+        ${heading('next-h', 'focus', 'Next step')}
+        ${renderNext(next)}
       </section>
 
       <section class="card" aria-labelledby="up-h">
         ${heading('up-h', 'calendar', 'Coming up')}
         ${upcoming.length
           ? `<ul class="plain-list">${upcoming.map((u) => `<li class="list-icon">${icon(u.icon, 28)}<span>${u.html}</span></li>`).join('')}</ul>`
-          : '<p class="muted">Nothing coming up.</p>'}
-        ${incoming ? `<p><a class="link-arrow" href="#/swap">${icon('inbox', 24)} ${incoming} skill swap ${incoming === 1 ? 'request is' : 'requests are'} waiting for you</a></p>` : ''}
+          : '<p class="muted">Nothing yet.</p>'}
+        ${incoming ? `<p><a class="link-arrow" href="#/swap">${icon('inbox', 24)} ${incoming} swap ${incoming === 1 ? 'request' : 'requests'}</a></p>` : ''}
       </section>
     `;
   },
@@ -73,7 +72,7 @@ export default {
       const level = e.target.value;
       store.update((s) => { s.energy = { date: todayISO(), level }; });
       ctx.rerender(`#energy-${level}`);
-      ctx.announce(`Energy set to ${ENERGY[level].label}. Your next step was updated.`);
+      ctx.announce(`Energy: ${ENERGY[level].label}.`);
     });
 
     root.addEventListener('click', (e) => {
@@ -106,7 +105,7 @@ export default {
           s.skip.ids.push(stepId);
         });
         ctx.rerender('#next-h');
-        ctx.announce('Okay, not now. Showing a different step.');
+        ctx.announce('Skipped.');
       }
       if (action === 'unskip') {
         store.update((s) => { s.skip = null; });
@@ -116,26 +115,25 @@ export default {
   },
 };
 
-function renderNext(next, energy) {
+function renderNext(next) {
   if (!next.none) {
     const { task, step } = next;
     const index = task.steps.indexOf(step) + 1;
     return `
       <p class="step-text">${esc(step.text)}</p>
-      <p class="muted">Part of “${esc(task.title)}” · step ${index} of ${task.steps.length}</p>
+      <p class="muted">${esc(task.title)} · ${index}/${task.steps.length}</p>
       <div class="actions">
-        <button type="button" class="btn btn-primary" data-action="step-done" data-task-id="${task.id}" data-step-id="${step.id}">${icon('check')}Mark as done</button>
+        <button type="button" class="btn btn-primary" data-action="step-done" data-task-id="${task.id}" data-step-id="${step.id}">${icon('check')}Done</button>
         <button type="button" class="btn" data-action="step-skip" data-task-id="${task.id}" data-step-id="${step.id}">${icon('later')}Not now</button>
-        <a class="btn" href="#/focus/${task.id}">${icon('focus')}Open focus mode</a>
+        <a class="btn" href="#/focus/${task.id}">${icon('focus')}Focus</a>
       </div>`;
   }
   if (!next.hasOpen) {
-    return '<p>Nothing is planned. You can <a href="#/plan">add a task</a>, or take the day as it comes.</p>';
+    return '<p>Nothing planned. <a href="#/plan">Add a task</a></p>';
   }
   if (next.allFilteredOut) {
-    return `<p>Nothing on your list fits ${energy === 'low' ? 'a low-energy moment' : 'your energy right now'}. That is okay. Rest is part of running a business.</p>
-      <p>If you want to, you can still <a href="#/plan">pick any task in the planner</a>.</p>`;
+    return '<p>Nothing fits your energy. Rest is okay.</p>';
   }
-  return `<p>You said “not now” to every step that fits. That is fine.</p>
-    <div class="actions"><button type="button" class="btn" data-action="unskip">${icon('reset')}Show them again</button></div>`;
+  return `<p>All skipped for now.</p>
+    <div class="actions"><button type="button" class="btn" data-action="unskip">${icon('reset')}Show again</button></div>`;
 }

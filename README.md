@@ -2,9 +2,9 @@
 
 # ThriveTogether — team_16_application
 
-**Build your business, not alone.**
+**Nobody should build alone.**
 
-The logo is two hands shaking (community, swapping skills) with a sprout growing from them (thriving). The blue and green match the app's Today and Planner colours. See [`logo.svg`](logo.svg).
+The logo is two hands shaking (community, swapping skills) with a sprout growing from them (thriving), in the same sky blue, orange and aqua as our slide deck. See [`logo.svg`](logo.svg).
 
 Many autistic and ADHD (AuADHD) people leave traditional jobs even though they are highly skilled. Interviews, rigid deadlines and doing everything alone make self-employment hard too. ThriveTogether is a community app where neurodivergent entrepreneurs can:
 
@@ -75,8 +75,8 @@ All data is stored in your browser (`localStorage`), so each person sees their o
 
 ## Accessibility and neuro-inclusive design decisions
 
-- **Clear colour coding:** each area has one colour that is always used the same way: Today is blue, Planner green, Skill swap orange, Co-work purple, Profile teal and Settings slate. Buttons for actions are always the same blue, so they are predictable.
-- **Big icons and big text:** large icons on the navigation, page titles, headings, buttons and energy levels (defined in `js/icons.js`, always paired with a text label). Default text is 19px with near-black text on white, 2px borders and buttons at least 52px tall.
+- **Matches our slide deck:** sky blue, orange and aqua colour blocks on white, black line icons, big rounded panels, round arrow links, and black speech-bubble messages. Headings use Poppins; body text uses Atkinson Hyperlegible. Each area has one colour: Today is orange, Planner blue, Skill swap aqua and Co-work lilac. Main buttons are always black, so they are predictable. Text on colour blocks is always near-black, and blue titles use a deeper blue so they stay readable.
+- **Big icons and big text:** large black icons on colour tiles for the navigation, page titles and headings (defined in `js/icons.js`, always paired with a text label). Default text is 19px and buttons are at least 52px tall.
 - **Sensory control:** muted colour palettes, high-contrast theme, low-stimulation mode, no animations beyond subtle hover changes, and none at all with reduced motion.
 - **No time pressure:** messages never disappear on a timer, there are no streaks, and nothing says you are "late". The focus timer is silent and optional.
 - **Reduce decisions:** you see one next step, not a wall of tasks. Templates remove the blank-page problem.

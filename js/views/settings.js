@@ -7,10 +7,10 @@ const GROUPS = [
   {
     key: 'theme', legend: 'Colours', icon: 'sparkle',
     options: [
-      ['system', 'Match my device', 'Light or dark, following your system setting.'],
-      ['calm', 'Calm light', 'Soft, warm background. Low glare.'],
-      ['dark', 'Calm dark', 'Dark background, muted colours.'],
-      ['contrast', 'High contrast', 'Black and white with strong outlines.'],
+      ['system', 'Automatic'],
+      ['calm', 'Light'],
+      ['dark', 'Dark'],
+      ['contrast', 'High contrast'],
     ],
   },
   {
@@ -20,31 +20,31 @@ const GROUPS = [
   {
     key: 'font', legend: 'Font', icon: 'message',
     options: [
-      ['hyperlegible', 'Atkinson Hyperlegible', 'Designed so similar letters are easy to tell apart.'],
-      ['verdana', 'Verdana', 'Wide letters. Many dyslexic readers like it.'],
-      ['system', 'My device’s font'],
+      ['hyperlegible', 'Atkinson Hyperlegible'],
+      ['verdana', 'Verdana'],
+      ['system', 'Device font'],
     ],
   },
   {
-    key: 'spacing', legend: 'Line and letter spacing', icon: 'list',
+    key: 'spacing', legend: 'Spacing', icon: 'list',
     options: [['normal', 'Normal'], ['relaxed', 'Relaxed'], ['spacious', 'Spacious']],
   },
   {
     key: 'motion', legend: 'Movement', icon: 'pause',
     options: [
-      ['system', 'Match my device'],
-      ['reduce', 'No movement', 'Turns off all transitions.'],
+      ['system', 'Automatic'],
+      ['reduce', 'None'],
     ],
   },
 ];
 
 export default {
-  title: 'Comfort settings',
+  title: 'Settings',
 
   render() {
     const st = store.state.settings;
     return `
-      ${pageHead('settings', 'Comfort settings', 'Changes happen straight away.')}
+      ${pageHead('settings', 'Settings')}
 
       <form id="settings-form">
         ${GROUPS.slice(0, 2).map((g) => group(g, st, true)).join('')}
@@ -56,14 +56,13 @@ export default {
           <fieldset class="field">
             <legend class="with-icon">${icon('eye', 26)}<span>Less to look at</span></legend>
             <div class="field-check">
-              <input type="checkbox" id="lowStim" name="lowStim" ${st.lowStim ? 'checked' : ''} aria-describedby="lowstim-hint">
+              <input type="checkbox" id="lowStim" name="lowStim" ${st.lowStim ? 'checked' : ''}>
               <label for="lowStim">Low-stimulation mode</label>
             </div>
-            <p class="hint" id="lowstim-hint">Removes most colour and decoration.</p>
           </fieldset>
 
           <div class="field">
-            <label for="bufferDays" class="with-icon">${icon('calendar', 26)}<span>Aim to finish this many days before a deadline</span></label>
+            <label for="bufferDays" class="with-icon">${icon('calendar', 26)}<span>Finish early by</span></label>
             <select id="bufferDays" name="bufferDays">
               ${[0, 1, 2, 3, 5, 7].map((n) => `<option value="${n}" ${st.bufferDays === n ? 'selected' : ''}>${n} ${n === 1 ? 'day' : 'days'}</option>`).join('')}
             </select>
@@ -71,12 +70,11 @@ export default {
 
           <div class="field">
             <p class="with-icon"><strong>${icon('save', 26)}</strong><strong>Your data</strong></p>
-            <p>Everything is stored only in this browser. Nothing is sent anywhere.</p>
+            <p>Saved only on this device.</p>
             <div class="actions">
-              <button type="button" class="btn" data-action="export">${icon('download')}Download my data</button>
-              <button type="button" class="btn btn-quiet" data-action="reset" aria-describedby="reset-hint">${icon('reset')}Start over</button>
+              <button type="button" class="btn" data-action="export">${icon('download')}Download</button>
+              <button type="button" class="btn btn-quiet" data-action="reset">${icon('reset')}Start over</button>
             </div>
-            <p class="hint" id="reset-hint">“Start over” removes your tasks, profile and settings. You will be asked to confirm.</p>
           </div>
         </details>
       </form>
@@ -99,15 +97,15 @@ export default {
       const action = e.target.closest('[data-action]')?.dataset.action;
       if (action === 'export') {
         download('thrivetogether-data.json', JSON.stringify(store.state, null, 2), 'application/json');
-        ctx.announce('Your data was downloaded as thrivetogether-data.json.');
+        ctx.announce('Downloaded.');
       }
       if (action === 'reset') {
         // eslint-disable-next-line no-alert
-        if (!window.confirm('Start over? This removes your tasks, profile and settings on this device.')) return;
+        if (!window.confirm('Start over? This deletes everything on this device.')) return;
         store.reset();
         ctx.applySettings();
         ctx.rerender('h1');
-        ctx.announce('Everything was reset.');
+        ctx.announce('Reset.');
       }
     });
   },

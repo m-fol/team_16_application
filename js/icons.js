@@ -44,11 +44,18 @@ export function icon(name, size = 24) {
   return `<svg class="icon" aria-hidden="true" focusable="false" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${P[name] || ''}</svg>`;
 }
 
-// Page title with a big coloured icon badge. `title` must already be escaped.
+// Wavy "badge" shape from the slide deck: a circle ringed with 12 bumps.
+const BLOB = `<circle cx="50" cy="50" r="38"/>${Array.from({ length: 12 }, (_, i) => {
+  const a = (i / 12) * Math.PI * 2;
+  return `<circle cx="${(50 + 38 * Math.cos(a)).toFixed(1)}" cy="${(50 + 38 * Math.sin(a)).toFixed(1)}" r="11"/>`;
+}).join('')}`;
+
+// Page title with a big black icon on a colour tile. `title` must already be escaped.
 export function pageHead(iconName, title, lede = '') {
   return `
     <div class="page-head">
-      <span class="page-icon">${icon(iconName, 44)}</span>
+      <svg class="page-blob" aria-hidden="true" focusable="false" viewBox="0 0 100 100" fill="currentColor">${BLOB}</svg>
+      <span class="page-icon tile-icon">${icon(iconName, 46)}</span>
       <div>
         <h1 tabindex="-1">${title}</h1>
         ${lede ? `<p class="lede">${lede}</p>` : ''}

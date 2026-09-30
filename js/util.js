@@ -5,29 +5,29 @@ export const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ESC[c]);
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
 export const ENERGY = {
-  low: { rank: 1, label: 'Low', hint: 'Small, familiar tasks. Resting counts too.' },
-  some: { rank: 2, label: 'Some', hint: 'Routine work and short focus sessions.' },
-  plenty: { rank: 3, label: 'Plenty', hint: 'New, complex or social tasks.' },
+  low: { rank: 1, label: 'Low' },
+  some: { rank: 2, label: 'Some' },
+  plenty: { rank: 3, label: 'Plenty' },
 };
 
 // How people like to be contacted. Shown on profiles and before sending a request.
 export const COMMS = {
-  written: 'Prefers written messages over calls',
-  agenda: 'Needs an agenda before any call',
-  'no-camera': 'Keeps camera off in calls',
-  slow: 'Replies within 2–3 days',
-  direct: 'Direct, literal feedback is welcome',
-  'no-smalltalk': 'Happy to skip small talk',
-  'voice-notes': 'Likes voice notes',
+  written: 'Prefers writing',
+  agenda: 'Agenda before calls',
+  'no-camera': 'Camera off',
+  slow: 'Slow replies',
+  direct: 'Direct feedback',
+  'no-smalltalk': 'No small talk',
+  'voice-notes': 'Voice notes',
 };
 
 export const FORMATS = {
-  silent: 'Silent work',
-  'text-only': 'Text chat only (no voice)',
+  silent: 'Silent',
+  'text-only': 'Text only',
   'camera-optional': 'Camera optional',
-  pomodoro: 'Timed breaks (25 / 5 min)',
+  pomodoro: 'Timed breaks',
   talking: 'Some talking',
-  agenda: 'Agenda shared in advance',
+  agenda: 'Agenda first',
 };
 
 // ---- dates (tasks use local YYYY-MM-DD strings) ----

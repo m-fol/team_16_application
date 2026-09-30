@@ -17,47 +17,46 @@ export default {
   render([taskId]) {
     const t = task(taskId);
     if (!t) {
-      return `<h1 tabindex="-1">Task not found</h1><p><a href="#/plan">Back to the planner</a></p>`;
+      return `<h1 tabindex="-1">Task not found</h1><p><a href="#/plan">Back</a></p>`;
     }
     const index = t.steps.findIndex((st) => !st.done);
     const step = t.steps[index];
 
     return `
-      <p><a class="link-arrow" href="#/plan">${icon('back', 22)} Back to the planner</a></p>
-      ${pageHead('focus', `Focus: ${esc(t.title)}`)}
+      <p><a class="link-arrow" href="#/plan">${icon('back', 22)} Back</a></p>
+      ${pageHead('focus', esc(t.title))}
       ${step ? `
-        <p class="muted" id="step-count">Step ${index + 1} of ${t.steps.length}</p>
+        <p class="muted" id="step-count">Step ${index + 1}/${t.steps.length}</p>
         <section class="card card-feature focus-step" aria-labelledby="step-count">
           <p class="focus-text" id="focus-text" tabindex="-1">${esc(step.text)}</p>
           <div class="actions">
-            <button type="button" class="btn btn-primary" data-action="done">${icon('check')}Done, show the next step</button>
-            <button type="button" class="btn" data-action="split" aria-expanded="false" aria-controls="split-form">${icon('split')}This step is too big</button>
+            <button type="button" class="btn btn-primary" data-action="done">${icon('check')}Done</button>
+            <button type="button" class="btn" data-action="split" aria-expanded="false" aria-controls="split-form">${icon('split')}Split step</button>
           </div>
           <form id="split-form" hidden>
             <div class="field">
-              <label for="split-steps">Split it into smaller steps, one per line</label>
+              <label for="split-steps">Smaller steps (one per line)</label>
               <textarea id="split-steps" rows="4"></textarea>
             </div>
             <div class="actions">
-              <button type="submit" class="btn btn-primary">${icon('check')}Replace with these steps</button>
+              <button type="submit" class="btn btn-primary">${icon('check')}Save</button>
               <button type="button" class="btn btn-quiet" data-action="split-cancel">Cancel</button>
             </div>
           </form>
         </section>` : `
         <section class="card card-feature">
-          <p class="focus-text" id="focus-text" tabindex="-1">All steps are done. That was real work.</p>
+          <p class="focus-text" id="focus-text" tabindex="-1">All done!</p>
           <div class="actions"><a class="btn btn-primary" href="#/today">${icon('today')}Back to Today</a></div>
         </section>`}
 
       <section class="card" aria-labelledby="timer-h">
-        ${heading('timer-h', 'clock', 'Optional timer')}
-        <p class="muted">The timer makes no sound. When time is up, a message appears. Nothing else happens — you can keep going.</p>
+        ${heading('timer-h', 'clock', 'Timer')}
         <div class="segmented" role="group" aria-label="Timer length">
           ${LENGTHS.map((m) => `<button type="button" class="btn" id="len-${m}" data-action="len" data-min="${m}" aria-pressed="${timer.total === m * 60}">${m} min</button>`).join('')}
         </div>
         <p class="timer-text" role="timer" id="timer-text">${fmt(timer.remaining)}</p>
         <div class="timer-bar" aria-hidden="true"><div id="timer-fill" style="width:${pct()}%"></div></div>
-        <p id="timer-done" class="timer-done" ${timer.remaining === 0 ? '' : 'hidden'}>Time is up. Take a break, or keep going if you are in the flow.</p>
+        <p id="timer-done" class="timer-done" ${timer.remaining === 0 ? '' : 'hidden'}>Time is up.</p>
         <div class="actions">
           <button type="button" class="btn btn-primary" id="timer-toggle" data-action="toggle">${toggleLabel()}</button>
           <button type="button" class="btn" id="timer-reset" data-action="reset">${icon('reset')}Reset</button>
@@ -119,7 +118,7 @@ export default {
         t.steps.splice(i, 1, ...texts.map((text) => ({ id: uid(), text, done: false })));
       });
       ctx.rerender('#focus-text');
-      ctx.announce(`Split into ${texts.length} steps. Showing the first one.`);
+      ctx.announce(`Split into ${texts.length} steps.`);
     });
   },
 
@@ -129,7 +128,7 @@ export default {
 };
 
 function toggleLabel() {
-  return timer.running ? `${icon('pause')}Pause` : `${icon('play')}Start timer`;
+  return timer.running ? `${icon('pause')}Pause` : `${icon('play')}Start`;
 }
 
 function pct() {
@@ -152,7 +151,7 @@ function tick() {
   timer.remaining = Math.max(0, Math.round((timer.endAt - Date.now()) / 1000));
   if (timer.remaining === 0) {
     stop();
-    announce('Time is up. Take a break, or keep going if you are in the flow.');
+    announce('Time is up.');
   }
   paint();
 }
